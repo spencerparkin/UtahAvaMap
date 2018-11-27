@@ -97,10 +97,11 @@ AvalancheHazardImageryProvider.prototype.getTileCredits = function(x, y, level) 
     return undefined;
 };
 
+// We can also return a promise here.  We'll need to do that eventually.
 AvalancheHazardImageryProvider.prototype.requestImage = function(x, y, level) {
     let canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 256;
+    canvas.width = this._tileWidth;
+    canvas.height = this._tileHeight;
     
     let context = canvas.getContext('2d');
     
@@ -110,6 +111,20 @@ AvalancheHazardImageryProvider.prototype.requestImage = function(x, y, level) {
     
     context.fillStyle = gradient;
     context.fillRect(0, 0, 256, 256);
+    
+    let rect = this._tilingScheme.tileXYToRectangle(x, y, level);
+    
+    let center_x = (rect.east + rect.west) / 2.0;
+    let center_y = (rect.south + rect.north) / 2.0;
+    
+    center_x *= 180.0 / Math.PI;
+    center_y *= 180.0 / Math.PI;
+    
+    let label = center_x.toFixed(2) + 'N ' + center_y.toFixed(2) + 'W';
+    context.font = 'bold 25px Arial';
+    context.textAlign = 'center';
+    context.fillStyle = 'black';
+    context.fillText(label, 127, 127);
 
     return canvas;
 };
@@ -137,7 +152,7 @@ window.onload = function() {
 }
 
 var debug_click = function() {
-    debug_layer = viewer.imageryLayers.addImageryProvider(new AvalancheHazardImageryProvider());
-    debug_layer.show = true;
-    debug_layer.alpha = 0.5;
+    let layer = viewer.imageryLayers.addImageryProvider(new AvalancheHazardImageryProvider());
+    layer.show = true;
+    layer.alpha = 0.5;
 }
