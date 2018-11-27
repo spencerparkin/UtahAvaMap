@@ -158,7 +158,7 @@
 		<name>AvalancheBoundaries</name>
 		<open>1</open>
 		<Placemark>
-			<name>SaltLakeBoundary</name>
+			<name>saltlake</name>
 			<styleUrl>#msn_ylw-pushpin2</styleUrl>
 			<Polygon>
 				<tessellate>1</tessellate>
@@ -172,7 +172,7 @@
 			</Polygon>
 		</Placemark>
 		<Placemark>
-			<name>OgdenBoundary</name>
+			<name>ogden</name>
 			<styleUrl>#msn_ylw-pushpin1</styleUrl>
 			<Polygon>
 				<tessellate>1</tessellate>
@@ -186,7 +186,7 @@
 			</Polygon>
 		</Placemark>
 		<Placemark>
-			<name>LoganBoundary</name>
+			<name>logan</name>
 			<styleUrl>#msn_ylw-pushpin</styleUrl>
 			<Polygon>
 				<tessellate>1</tessellate>
@@ -200,7 +200,7 @@
 			</Polygon>
 		</Placemark>
 		<Placemark>
-			<name>ProvoBoundary</name>
+			<name>provo</name>
 			<styleUrl>#msn_ylw-pushpin0</styleUrl>
 			<Polygon>
 				<tessellate>1</tessellate>
@@ -214,7 +214,7 @@
 			</Polygon>
 		</Placemark>
 		<Placemark>
-			<name>SkylineBoundary</name>
+			<name>skyline</name>
 			<styleUrl>#msn_ylw-pushpin0</styleUrl>
 			<Polygon>
 				<tessellate>1</tessellate>
@@ -228,7 +228,7 @@
 			</Polygon>
 		</Placemark>
 		<Placemark>
-			<name>MoabBoundary</name>
+			<name>moab</name>
 			<styleUrl>#msn_ylw-pushpin0</styleUrl>
 			<Polygon>
 				<tessellate>1</tessellate>

@@ -99,31 +99,53 @@ AvalancheHazardImageryProvider.prototype.getTileCredits = function(x, y, level) 
 
 // We can also return a promise here.  We'll need to do that eventually.
 AvalancheHazardImageryProvider.prototype.requestImage = function(x, y, level) {
+    return new Promise((resolve, reject) => {
+        if(level < 7) {
+            let canvas = this._generate_tile_canvas(undefined);
+            resolve(canvas);
+        }
+        let tileRect = this._tilingScheme.tileXYToRectangle(x, y, level);
+        $.ajax({
+            url: 'ava_region',
+            dataType: 'json',
+            data: {
+                west: tileRect.west * 180.0 / Math.PI,
+                east: tileRect.east * 180.0 / Math.PI,
+                south: tileRect.south * 180.0 / Math.PI,
+                north: tileRect.north * 180.0 / Math.PI
+            },
+            contentType: 'application/json',
+            type: 'GET',
+            success: json_data => {
+                let canvas = this._generate_tile_canvas(json_data['region']);
+                resolve(canvas);
+            },
+            failure: error => {
+                alert(error);
+                reject();
+            }
+        });
+    });
+};
+
+AvalancheHazardImageryProvider.prototype._generate_tile_canvas = function(region) {
     let canvas = document.createElement('canvas');
     canvas.width = this._tileWidth;
     canvas.height = this._tileHeight;
     
     let context = canvas.getContext('2d');
     
-    let gradient = context.createLinearGradient(0, 0, 200, 0);
-    gradient.addColorStop(0, 'red');
-    gradient.addColorStop(1, 'white');
+    context.strokeStyle = 'red';
+    context.lineWidth = 2;
+    context.strokeRect(1, 1, 255, 255);
     
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, 256, 256);
+    let label = region;
+    if(!label)
+        label = '';
     
-    let rect = this._tilingScheme.tileXYToRectangle(x, y, level);
-    
-    let center_x = (rect.east + rect.west) / 2.0;
-    let center_y = (rect.south + rect.north) / 2.0;
-    
-    center_x *= 180.0 / Math.PI;
-    center_y *= 180.0 / Math.PI;
-    
-    let label = center_x.toFixed(2) + 'N ' + center_y.toFixed(2) + 'W';
     context.font = 'bold 25px Arial';
     context.textAlign = 'center';
-    context.fillStyle = 'black';
+    context.fillStyle = 'white';
     context.fillText(label, 127, 127);
 
     return canvas;
@@ -140,11 +162,6 @@ var init_map = function() {
     viewer = new Cesium.Viewer('cesiumContainer', {
         terrainProvider: Cesium.createWorldTerrain()
     });
-    
-    let layer = viewer.imageryLayers.addImageryProvider(new Cesium.TileCoordinatesImageryProvider());
-    layer.alpha = 0.5;
-    layer.show = true;
-    layer.name = 'Tile Coordinates';
 }
 
 window.onload = function() {
@@ -155,4 +172,5 @@ var debug_click = function() {
     let layer = viewer.imageryLayers.addImageryProvider(new AvalancheHazardImageryProvider());
     layer.show = true;
     layer.alpha = 0.5;
+    layer.name = 'Avalanche Hazard';
 }
