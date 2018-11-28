@@ -178,11 +178,24 @@ AvalancheHazardImageryProvider.prototype._generate_tile_canvas = function(rose, 
     
     let context = canvas.getContext('2d');
     
-    let di = 4;
-    let dj = 4;
+    // TODO: We should only shade terrain that is in a certain slope-angle range (38 degrees +/- 10 degrees.)
+    
+    let di = 16;
+    let dj = 16;
+    
+    let debug_height = 0.0;
     
     for(let i = 0; i < canvas.width; i += di) {
         for(let j = 0; j < canvas.height; j += dj) {
+            
+            let longitude = tileRect.west + (i + di/2) / canvas.width * (tileRect.east - tileRect.west);
+            let latitude = tileRect.south + (canvas.height - 1 - j + dj/2) / canvas.height * (tileRect.north - tileRect.south);
+            let cartographic = new Cesium.Cartographic(longitude, latitude);
+            let height = viewer.scene.globe.getHeight(cartographic);
+            
+            if(i == 128 && j == 128)
+                debug_height = height;
+            
             let r = i % 256;
             let g = j % 256;
             let b = (i + j) % 256;
@@ -191,6 +204,11 @@ AvalancheHazardImageryProvider.prototype._generate_tile_canvas = function(rose, 
             context.fillRect(i, j, di, dj);
         }
     }
+
+    context.font = 'bold 25px Arial';
+    context.textAlign = 'center';
+    context.fillStyle = 'white';
+    context.fillText(debug_height.toFixed(1), 127, 127);
 
     return canvas;
 };
