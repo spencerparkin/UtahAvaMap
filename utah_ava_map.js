@@ -99,12 +99,13 @@ AvalancheHazardImageryProvider.prototype.getTileCredits = function(x, y, level) 
 
 AvalancheHazardImageryProvider.prototype.requestImage = function(x, y, level) {
     return new Promise((resolve, reject) => {
-        this._promise_ava_region(x, y, level).then(region => {
+        let tileRect = this._tilingScheme.tileXYToRectangle(x, y, level);
+        this._promise_ava_region(tileRect, level).then(region => {
             if(!region) {
                 resolve(undefined);
             } else {
                 this._promise_ava_rose(region).then(rose => {
-                    let canvas = this._generate_tile_canvas(rose, region);
+                    let canvas = this._generate_tile_canvas(rose, region, tileRect);
                     resolve(canvas);
                 });
             }
@@ -112,12 +113,11 @@ AvalancheHazardImageryProvider.prototype.requestImage = function(x, y, level) {
     });
 };
 
-AvalancheHazardImageryProvider.prototype._promise_ava_region = function(x, y, level) {
+AvalancheHazardImageryProvider.prototype._promise_ava_region = function(tileRect, level) {
     return new Promise((resolve, reject) => {
         if(level < 7) {
             resolve(undefined);
         }
-        let tileRect = this._tilingScheme.tileXYToRectangle(x, y, level);
         $.ajax({
             url: 'ava_region',
             dataType: 'json',
@@ -171,25 +171,26 @@ AvalancheHazardImageryProvider.prototype._promise_ava_rose = function(region) {
     });
 }
 
-AvalancheHazardImageryProvider.prototype._generate_tile_canvas = function(rose, region) {
+AvalancheHazardImageryProvider.prototype._generate_tile_canvas = function(rose, region, tileRect) {
     let canvas = document.createElement('canvas');
     canvas.width = this._tileWidth;
     canvas.height = this._tileHeight;
     
     let context = canvas.getContext('2d');
     
-    context.strokeStyle = 'red';
-    context.lineWidth = 2;
-    context.strokeRect(1, 1, 255, 255);
+    let di = 4;
+    let dj = 4;
     
-    let label = region;
-    if(!label)
-        label = '';
-    
-    context.font = 'bold 25px Arial';
-    context.textAlign = 'center';
-    context.fillStyle = 'white';
-    context.fillText(label, 127, 127);
+    for(let i = 0; i < canvas.width; i += di) {
+        for(let j = 0; j < canvas.height; j += dj) {
+            let r = i % 256;
+            let g = j % 256;
+            let b = (i + j) % 256;
+            let a = 255;
+            context.fillStyle = 'rgb(' + r + ', ' + g + ', ' + b + ', ' + a + ')';
+            context.fillRect(i, j, di, dj);
+        }
+    }
 
     return canvas;
 };
@@ -203,8 +204,17 @@ var viewer = null;
 var init_map = function() {
     Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIyZjBmNGUxMi1mNjYyLTQ4NTMtYjdkZC03ZGJkMzZlMzYyZWQiLCJpZCI6NTA2Miwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MjMwODg2MH0.MJB-IG9INCNEA0ydUvprHcUTLdKDbnPpkWG6DCqXKQc';
     viewer = new Cesium.Viewer('cesiumContainer', {
-        terrainProvider: Cesium.createWorldTerrain()
+        terrainProvider: Cesium.createWorldTerrain({
+            requestVertexNormals: true
+        })
     });
+    
+    let west = -111.7287239132627;
+    let east = -111.6729336993894;
+    let north = 40.66047397914876;
+    let south = 40.64897595231015;
+    let rect = Cesium.Rectangle.fromDegrees(west, south, east, north);
+    viewer.camera.setView({destination: rect});
 }
 
 window.onload = function() {
