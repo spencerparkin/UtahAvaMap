@@ -97,12 +97,25 @@ AvalancheHazardImageryProvider.prototype.getTileCredits = function(x, y, level) 
     return undefined;
 };
 
-// We can also return a promise here.  We'll need to do that eventually.
 AvalancheHazardImageryProvider.prototype.requestImage = function(x, y, level) {
     return new Promise((resolve, reject) => {
+        this._promise_ava_region(x, y, level).then(region => {
+            if(!region) {
+                resolve(undefined);
+            } else {
+                this._promise_ava_rose(region).then(rose => {
+                    let canvas = this._generate_tile_canvas(rose, region);
+                    resolve(canvas);
+                });
+            }
+        });
+    });
+};
+
+AvalancheHazardImageryProvider.prototype._promise_ava_region = function(x, y, level) {
+    return new Promise((resolve, reject) => {
         if(level < 7) {
-            let canvas = this._generate_tile_canvas(undefined);
-            resolve(canvas);
+            resolve(undefined);
         }
         let tileRect = this._tilingScheme.tileXYToRectangle(x, y, level);
         $.ajax({
@@ -117,8 +130,12 @@ AvalancheHazardImageryProvider.prototype.requestImage = function(x, y, level) {
             contentType: 'application/json',
             type: 'GET',
             success: json_data => {
-                let canvas = this._generate_tile_canvas(json_data['region']);
-                resolve(canvas);
+                if('error' in json_data) {
+                    alert(json_data['error']);
+                    reject();
+                } else {
+                    resolve(json_data['region']);
+                }
             },
             failure: error => {
                 alert(error);
@@ -126,9 +143,35 @@ AvalancheHazardImageryProvider.prototype.requestImage = function(x, y, level) {
             }
         });
     });
-};
+}
 
-AvalancheHazardImageryProvider.prototype._generate_tile_canvas = function(region) {
+AvalancheHazardImageryProvider.prototype._promise_ava_rose = function(region) {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: 'ava_rose',
+            dataType: 'json',
+            data: {
+                region: region
+            },
+            contentType: 'application/json',
+            type: 'GET',
+            success: json_data => {
+                if('error' in json_data) {
+                    alert(json_data['error']);
+                    reject();
+                } else {
+                    resolve(json_data);
+                }
+            },
+            failure: error => {
+                alert(error);
+                reject();
+            }
+        });
+    });
+}
+
+AvalancheHazardImageryProvider.prototype._generate_tile_canvas = function(rose, region) {
     let canvas = document.createElement('canvas');
     canvas.width = this._tileWidth;
     canvas.height = this._tileHeight;
