@@ -313,6 +313,23 @@ var init_map = function() {
     let south = 40.64897595231015;
     let rect = Cesium.Rectangle.fromDegrees(west, south, east, north);
     viewer.camera.setView({destination: rect});
+    
+    // TODO: Add code here to also show slope aspect and angle, share with tile image generator code.
+    let handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas, false);
+    handler.setInputAction(
+        function(movement) {
+            let ray = viewer.camera.getPickRay(movement.endPosition);
+            let position = viewer.scene.globe.pick(ray, viewer.scene);
+            if(Cesium.defined(position)) {
+                let positionCartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(position);
+                let span = document.getElementById('ground_data');
+                span.textContent = 'Height: ' + positionCartographic.height.toFixed(2);
+                span.textContent += '; Latitude: ' + (positionCartographic.latitude * 180.0 / Math.PI).toFixed(10);
+                span.textContent += '; Longitude: ' + (positionCartographic.longitude * 180.0 / Math.PI).toFixed(10);
+            }
+        },
+        Cesium.ScreenSpaceEventType.MOUSE_MOVE
+    );
 }
 
 window.onload = function() {
