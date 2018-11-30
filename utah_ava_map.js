@@ -297,7 +297,77 @@ AvalancheHazardImageryProvider.prototype.pickFeatures = function() {
     return undefined;
 };
 
+let calculate_slope_angle_and_aspect = function(ground_center, ground_ring_ccw) {
+    
+    // Approximate the normal to the surface at the given ground center by averaging
+    // all the normals we get from the given ground ring that should surround the center.
+    let ground_normal = new Cesium.Cartesian3(0.0, 0.0, 0.0);
+    for(let i = 0; i < ground_ring_ccw.length; i++) {
+        let j = (i + 1) % ground_ring_ccw.length;
+        let vector_a = new Cesium.Cartesian3();
+        let vector_b = new Cesium.Cartesian3();
+        Cesium.Cartesian3.subtract(ground_ring_ccw[i], ground_center, vector_a);
+        Cesium.Cartesian3.subtract(ground_ring_ccw[j], ground_center, vector_b);
+        let normal = new Cesium.Cartesian3();
+        Cesium.Cartesian3.cross(vector_a, vector_b, normal);
+        Cesium.Cartesian3.normalize(normal, normal);
+        Cesium.Cartesian3.add(ground_normal, normal, ground_normal);
+    }
+    Cesium.Cartesian3.normalize(ground_normal, ground_normal);
+    
+    // Calculate the slope angle.
+    let tangent_plane = new Cesium.EllipsoidTangentPlane(ground_center);
+    let globe_normal = new Cesium.Cartesian3();
+    Cesium.Cartesian3.cross(tangent_plane.xAxis, tangent_plane.yAxis, globe_normal);
+    Cesium.Cartesian3.normalize(globe_normal, globe_normal); // This is probably already unit-length.
+    let slope_angle = Cesium.Cartesian3.angleBetween(globe_normal, ground_normal);
+    
+    // Project our ground normal onto the tangent plane.
+    let rejected_ground_normal = new Cesium.Cartesian3();
+    let dot = Cesium.Cartesian3.dot(ground_normal, globe_normal);
+    Cesium.Cartesian3.multiplyByScalar(globe_normal, dot, rejected_ground_normal);
+    let projected_ground_normal = new Cesium.Cartesian3();
+    Cesium.Cartesian3.subtract(ground_normal, rejected_ground_normal, projected_ground_normal);
+    
+    // Now since the y-axis of the tangent plane is always north, and the x-axis east, we can
+    // calculate our aspect by seeing where the projected ground normal points in the tangent space.
+    let aspect = Cesium.Cartesian3.angleBetween(projected_ground_normal, tangent_plane.xAxis);
+    
+    // Finally, return the data.
+    return {
+        slope_angle: slope_angle,   // Ranges from 0 to 90 degrees.
+        aspect: aspect,      // 0-degrees (east), 90-degrees (north), 180-degrees (west), 270-degrees (south).
+        normal: ground_normal
+    };
+};
+
+var ground_points_from_mouse_point = function(mouse_point) {
+    let ray = viewer.camera.getPickRay(mouse_point);
+    if(Cesium.defined(ray) && !isNaN(ray.direction.x)) {
+        let center = viewer.scene.globe.pick(ray, viewer.scene);
+        if(Cesium.defined(center)) {
+            let ring_vertices = [];
+            let delta_list = [[0, -2], [2, 0], [0, 2], [-2, 0]];    // Isn't this clock-wise?!
+            for(let i = 0; i < delta_list.length; i++) {
+                let delta = delta_list[i];
+                ray = viewer.camera.getPickRay({x: mouse_point.x - delta[0], y: mouse_point.y + delta[1]});
+                if(Cesium.defined(ray)) {
+                    ring_vertices.push(viewer.scene.globe.pick(ray, viewer.scene));
+                }
+            }
+            if(ring_vertices.length == delta_list.length && ring_vertices.every((vertex) => {return Cesium.defined(vertex);})) {
+                return {
+                    center: center,
+                    ring_vertices: ring_vertices
+                };
+            }
+        }
+    }
+    return undefined;
+};
+
 var viewer = null;
+var debug_flag = false;
 
 var init_map = function() {
     Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIyZjBmNGUxMi1mNjYyLTQ4NTMtYjdkZC03ZGJkMzZlMzYyZWQiLCJpZCI6NTA2Miwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MjMwODg2MH0.MJB-IG9INCNEA0ydUvprHcUTLdKDbnPpkWG6DCqXKQc';
@@ -307,6 +377,11 @@ var init_map = function() {
         })
     });
     
+    viewer.canvas.setAttribute('tabindex', '0');
+    viewer.canvas.onclick = function() {
+        viewer.canvas.focus();
+    };
+    
     let west = -111.7287239132627;
     let east = -111.6729336993894;
     let north = 40.66047397914876;
@@ -314,18 +389,42 @@ var init_map = function() {
     let rect = Cesium.Rectangle.fromDegrees(west, south, east, north);
     viewer.camera.setView({destination: rect});
     
-    // TODO: Add code here to also show slope aspect and angle, share with tile image generator code.
     let handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas, false);
     handler.setInputAction(
         function(movement) {
-            let ray = viewer.camera.getPickRay(movement.endPosition);
-            let position = viewer.scene.globe.pick(ray, viewer.scene);
-            if(Cesium.defined(position)) {
-                let positionCartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(position);
+            let ground_points = ground_points_from_mouse_point(movement.endPosition);
+            if(ground_points) {
+                let ground_data = calculate_slope_angle_and_aspect(ground_points.center, ground_points.ring_vertices);
+                let positionCartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(ground_points.center);
                 let span = document.getElementById('ground_data');
                 span.textContent = 'Height: ' + positionCartographic.height.toFixed(2);
                 span.textContent += '; Latitude: ' + (positionCartographic.latitude * 180.0 / Math.PI).toFixed(10);
                 span.textContent += '; Longitude: ' + (positionCartographic.longitude * 180.0 / Math.PI).toFixed(10);
+                span.textContent += '; Slope Angle: ' + (ground_data.slope_angle * 180.0 / Math.PI).toFixed(2);
+                span.textContent += '; Aspect: ' + (ground_data.aspect * 180.0 / Math.PI).toFixed(2);
+            
+                if(debug_flag) {
+                    debug_flag = false;
+                    let entity = new Cesium.Entity({
+                        position: ground_points.center,
+                        point: new Cesium.PointGraphics({
+                            color: Cesium.Color.RED,
+                            pixelSize: 10
+                        })
+                    });
+                    viewer.entities.add(entity);
+                    
+                    let vector_tip = new Cesium.Cartesian3();
+                    Cesium.Cartesian3.multiplyByScalar(ground_data.normal, 100.0, vector_tip);
+                    Cesium.Cartesian3.add(ground_points.center, vector_tip, vector_tip);
+                    entity = new Cesium.Entity({
+                        position: ground_points.center,
+                        polyline: new Cesium.PolylineGraphics({
+                            positions: [ground_points.center, vector_tip]
+                        })
+                    });
+                    viewer.entities.add(entity);
+                }
             }
         },
         Cesium.ScreenSpaceEventType.MOUSE_MOVE
@@ -334,6 +433,12 @@ var init_map = function() {
 
 window.onload = function() {
     init_map();
+    
+    document.addEventListener('keydown', function(event) {
+        if(event.keyCode == 68) {
+            debug_flag = true;
+        }
+    });
 }
 
 var debug_click = function() {
