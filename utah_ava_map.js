@@ -171,6 +171,13 @@ AvalancheHazardImageryProvider.prototype._promise_ava_rose = function(region) {
     });
 }
 
+var calculate_ground_position_at_location = function(longitude, latitude) {
+    let cartographic = new Cesium.Cartographic(longitude, latitude);
+    cartographic.height = viewer.scene.globe.getHeight(cartographic); // Slow ray cast!
+    let position = Cesium.Cartographic.toCartesian(cartographic);
+    return position;
+}
+
 AvalancheHazardImageryProvider.prototype._generate_tile_canvas = function(rose, region, tileRect) {
     let canvas = document.createElement('canvas');
     canvas.width = this._tileWidth;
@@ -178,112 +185,56 @@ AvalancheHazardImageryProvider.prototype._generate_tile_canvas = function(rose, 
     
     let context = canvas.getContext('2d');
     
-    let row_step = 16;
+    let row_step = 32;
     let col_step = 16;
     
-    let height_field_rows = canvas.height / row_step;
-    let height_field_cols = canvas.width / col_step;
+    let matrix_rows = canvas.height / row_step;
+    let matrix_cols = canvas.width / col_step;
     
-    // Generate a height field for the tile.  This is the most expensive part.
-    let height_field = [];
-    for(let i = 0; i < height_field_rows; i++) {
+    let dx = ((tileRect.east - tileRect.west) / matrix_cols) / 8.0;
+    let dy = ((tileRect.north - tileRect.south) / matrix_rows) / 8.0;
+    
+    let start_time = new Date();
+    
+    let matrix = [];
+    for(let i = 0; i < matrix_rows; i++) {
         let column = [];
-        height_field.push(column);
-        let longitude = tileRect.west + ((i + 0.5) / height_field_rows) * (tileRect.east - tileRect.west);
-        for(let j = 0; j < height_field_cols; j++) {
-            let latitude = tileRect.south + (1.0 - (j + 0.5) / height_field_cols) * (tileRect.north - tileRect.south);
-            let cartographic = new Cesium.Cartographic(longitude, latitude);
-            cartographic.height = viewer.scene.globe.getHeight(cartographic); // Slow ray cast!
-            let position = Cesium.Cartographic.toCartesian(cartographic);
-            column.push({position: position, aspect: undefined, slope_angle: undefined});
+        matrix.push(column);
+        let latitude = tileRect.north + ((i + 0.5) / matrix_rows) * (tileRect.south - tileRect.north);
+        
+        for(let j = 0; j < matrix_cols; j++) {
+            let longitude = tileRect.west + ((j + 0.5) / matrix_cols) * (tileRect.east - tileRect.east);
+            
+            let position = calculate_ground_position_at_location(longitude, latitude);
+            let eastPosition = calculate_ground_position_at_location(longitude + dx, latitude);
+            let westPosition = calculate_ground_position_at_location(longitude - dx, latitude);
+            let northPosition = calculate_ground_position_at_location(longitude, latitude + dy);
+            let southPosition = calculate_ground_position_at_location(longitude, latitude - dy);
+            
+            let ground_ring_ccw = [eastPosition, northPosition, westPosition, southPosition];
+            let ground_data = calculate_slope_angle_and_aspect(position, ground_ring_ccw);
+            
+            ground_data.slope_angle *= 180.0 / Math.PI;
+            ground_data.aspect *= 180.0 / Math.PI;
+            
+            column.push(ground_data);
         }
     }
     
-    // Now go calculate aspect and slope-angle for each point in the height field.
-    for(let i = 0; i < height_field_rows; i++) {
-        for(let j = 0; j < height_field_cols; j++) {
-            let entry = height_field[i][j];
-            
-            // Collect and compute normals from adjacent entries in the height field.
-            let normal;
-            let vector_a = new Cesium.Cartesian3();
-            let vector_b = new Cesium.Cartesian3();
-            let normal_list = [];
-            if(i + 1 < height_field_rows) {
-                if(j + 1 < height_field_cols) {
-                    Cesium.Cartesian3.subtract(height_field[i+1][j].position, entry.position, vector_a);
-                    Cesium.Cartesian3.subtract(height_field[i][j+1].position, entry.position, vector_b);
-                    normal = new Cesium.Cartesian3();
-                    Cesium.Cartesian3.cross(vector_a, vector_b, normal)
-                    Cesium.Cartesian3.normalize(normal, normal);
-                    normal_list.push(normal);
-                }
-                if(j > 0) {
-                    Cesium.Cartesian3.subtract(height_field[i][j-1].position, entry.position, vector_a);
-                    Cesium.Cartesian3.subtract(height_field[i+1][j].position, entry.position, vector_b);
-                    normal = new Cesium.Cartesian3();
-                    Cesium.Cartesian3.cross(vector_a, vector_b, normal)
-                    Cesium.Cartesian3.normalize(normal, normal);
-                    normal_list.push(normal);
-                }
-            }
-            if(i > 0) {
-                if(j + 1 < height_field_cols) {
-                    Cesium.Cartesian3.subtract(height_field[i][j+1].position, entry.position, vector_a);
-                    Cesium.Cartesian3.subtract(height_field[i-1][j].position, entry.position, vector_b);
-                    normal = new Cesium.Cartesian3();
-                    Cesium.Cartesian3.cross(vector_a, vector_b, normal)
-                    Cesium.Cartesian3.normalize(normal, normal);
-                    normal_list.push(normal);
-                }
-                if(j > 0) {
-                    Cesium.Cartesian3.subtract(height_field[i-1][j].position, entry.position, vector_a);
-                    Cesium.Cartesian3.subtract(height_field[i][j-1].position, entry.position, vector_b);
-                    normal = new Cesium.Cartesian3();
-                    Cesium.Cartesian3.cross(vector_a, vector_b, normal)
-                    Cesium.Cartesian3.normalize(normal, normal);
-                    normal_list.push(normal);
-                }
-            }
-            
-            // Average the normals to get our best approximation.
-            normal = new Cesium.Cartesian3(0.0, 0.0, 0.0);
-            for(let k = 0; k < normal_list.length; k++)
-                Cesium.Cartesian3.add(normal, normal_list[k], normal);
-            Cesium.Cartesian3.normalize(normal, normal);
-            
-            // Finally, calculate aspect and slope-angle.
-            entry.aspect = Math.atan2(normal.z, normal.x);
-            let normal_projected = new Cesium.Cartesian3(normal.x, 0.0, normal.z);
-            let angle = Cesium.Cartesian3.angleBetween(normal, normal_projected);
-            entry.slope_angle = angle * 180.0 / Math.PI;
-        }
-    }
-    
-    let prime_slope_angle = 38.0;
-    let prime_slope_angle_radius = 5.0;
-    let slope_angle_min = prime_slope_angle - prime_slope_angle_radius;
-    let slope_angle_max = prime_slope_angle + prime_slope_angle_radius;
-    
+    let end_time = new Date();
+    let diff_time = end_time - start_time;
+    console.log('Time taken: ' + diff_time);
+      
     let r, g, b, a;
     
     for(let i = 0; i < canvas.height; i += row_step) {
         for(let j = 0; j < canvas.width; j += col_step) {
-            let entry = height_field[i / row_step][j / col_step];
-            if(entry.slope_angle >= slope_angle_min && entry.slope_angle <= slope_angle_max) {
-                
-                // TODO: Color the avalanchy slope based on its aspect/elevation and the avalanche rose.
+            let entry = matrix[i / row_step][j / col_step];
             
-                r = 255;
-                g = 255;
-                b = 255;
-                a = 255;
-            } else {
-                r = 0;
-                g = 0;
-                b = 0;
-                a = 0;
-            }
+            r = 255.0 * (entry.slope_angle / 90.0);
+            g = 255.0 * (entry.slope_angle / 90.0);
+            b = 255.0 * (entry.slope_angle / 90.0);
+            a = 255;
             
             context.fillStyle = 'rgb(' + r + ', ' + g + ', ' + b + ', ' + a + ')';
             context.fillRect(j, i, col_step, row_step);
@@ -332,12 +283,15 @@ let calculate_slope_angle_and_aspect = function(ground_center, ground_ring_ccw) 
     // Now since the y-axis of the tangent plane is always north, and the x-axis east, we can
     // calculate our aspect by seeing where the projected ground normal points in the tangent space.
     let aspect = Cesium.Cartesian3.angleBetween(projected_ground_normal, tangent_plane.xAxis);
+    if(aspect < 0.0)
+        aspect += 2.0 * Math.PI;
     
     // Finally, return the data.
     return {
         slope_angle: slope_angle,   // Ranges from 0 to 90 degrees.
         aspect: aspect,      // 0-degrees (east), 90-degrees (north), 180-degrees (west), 270-degrees (south).
-        normal: ground_normal
+        normal: ground_normal,
+        center: ground_center
     };
 };
 

@@ -190,7 +190,7 @@ class WebServer(object):
             'low': (80.0, 184.0, 72.0),
             'moderate': (255.0, 242.0, 0.0),
             'considerable': (247.0, 148.0, 30.0),
-            'high': (204.0, 51.0, 44.0),
+            'high': (237.0, 28.0, 36.0),
             'extreme': (34.0, 34.0, 34.0)
         }
         epsilon = 1e-5
