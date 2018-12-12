@@ -14,8 +14,6 @@ import math
 class WebServer(object):
     def __init__(self, root_dir):
         self.root_dir = root_dir
-        self._load_ava_boundaries()
-        self.ava_rose_cache = {}
 
     @cherrypy.expose
     def default(self, **kwargs):
