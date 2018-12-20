@@ -8,27 +8,30 @@ uniform vec4 rose11;    // 8000-9500, W through SE
 uniform vec4 rose20;    // Above 9500, E through NW
 uniform vec4 rose21;    // Above 9500, W through SE
 
-czm_material czm_getMatrial(czm_materialInput materialInput) {
+// 38 degrees +/- this radius gives our coloring range.
+uniform float slope_prime_radius;
+
+czm_material czm_getMaterial(czm_materialInput materialInput) {
     czm_material material = czm_getDefaultMaterial(materialInput);
     
-    // TODO: I may have to fork the cesium project, make changes to the czm_materialInput struct, then do a pull request.
-    float aspect = materialInput.aspect * 360.0;            // This is in degrees [0,360); 0 degrees is East.
-    float slope = (1.0 - materialInput.slope) * 90.0;       // This is in degrees [0,90); 0 degrees is flat, 90 is vertical.
+    float pi = 3.1415926536;
+    float aspect = materialInput.aspect * (360.0 / pi);     // This is in degrees [0,360); 0 degrees is East.
+    float slope = materialInput.slope * (360.0 / pi);       // This is in degrees [0,90); 0 degrees is flat, 90 is vertical.
     float elevation = materialInput.height;                 // This is in meters; -414.0 is dead sea elevation, 8777.0 is everest elevation.
     
-    float slope_min = 25.0;
-    float slope_max = 45.0;
     float slope_prime = 38.0;   // This is the best slope angle for avalanches.
+    float slope_min = slope_prime - slope_prime_radius;
+    float slope_max = slope_prime + slope_prime_radius;
     
     // The applicability of the danger rating color is based on slope angle.
     if(slope < slope_min) {
-        material.alpha = 0.0;
+        material.alpha = 0.0;   // Fully transparent.
     } else if(slope_min <= slope && slope <= slope_prime) {
         material.alpha = clamp((slope - slope_min) / (slope_prime - slope_min), 0.0, 1.0);
     } else if(slope_prime <= slope && slope <= slope_max) {
         material.alpha = clamp(1.0 - (slope - slope_prime) / (slope_max - slope_prime), 0.0, 1.0);
     } else if(slope > slope_max) {
-        material.alpha = 0.0;
+        material.alpha = 0.0;   // Fully transparent.
     }
     
     // Determine which level of the avalanche rose is applicable.

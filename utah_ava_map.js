@@ -12,48 +12,54 @@ var init_map = function() {
     
     viewer.scene.globe.enableLighting = true;
     
-    /*let west = -111.7287239132627;
+    let west = -111.7287239132627;
     let east = -111.6729336993894;
     let north = 40.66047397914876;
     let south = 40.64897595231015;
     let rect = Cesium.Rectangle.fromDegrees(west, south, east, north);
-    viewer.camera.setView({destination: rect});*/
+    viewer.camera.setView({destination: rect});
 }
 
 window.onload = function() {
     init_map();
 }
 
-function getColorRamp() {
-    var ramp = document.createElement('canvas');
-    ramp.width = 100;
-    ramp.height = 1;
-    var ctx = ramp.getContext('2d');
-    var values = [0.0, 0.29, 0.5, Math.sqrt(2)/2, 0.87, 0.91, 1.0];
-    var grd = ctx.createLinearGradient(0, 0, 100, 0);
-    grd.addColorStop(values[0], '#000000'); //black
-    grd.addColorStop(values[1], '#2747E0'); //blue
-    grd.addColorStop(values[2], '#D33B7D'); //pink
-    grd.addColorStop(values[3], '#D33038'); //red
-    grd.addColorStop(values[4], '#FF9742'); //orange
-    grd.addColorStop(values[5], '#ffd700'); //yellow
-    grd.addColorStop(values[6], '#ffffff'); //white
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, 100, 1);
-    return ramp;
+function promiseAvaMapShader() {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: 'utah_ava_map.glsl',
+            dataType: 'text',
+            success: glsl_code => {
+                resolve(glsl_code);
+            },
+            failure: error => {
+                alert(error);
+                reject();
+            }
+        });
+    });
 }
 
 var debug_click = function() {
-    /*var material = new Cesium.Material({
-        fabric: {
-            type: 'Color',
-            uniforms: {
-                color: new Cesium.Color(1.0, 0.0, 0.0, 0.5)
+    promiseAvaMapShader().then(glsl_code => {
+        var material = new Cesium.Material({
+            fabric: {
+                type: 'UtahAvaMaterial',
+                source: glsl_code,
+                uniforms: {
+                    // Default to extreme danger everywhere.  We'll change this once the real danger rating comes in.
+                    rose00: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                    rose01: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                    rose10: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                    rose11: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                    rose20: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                    rose21: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                    // Look at slopes in the range [P-15,P+15], where P is the prime avalanche slope angle (38 degrees.)
+                    slope_prime_radius: 15.0
+                }
             }
-        }
-    });*/
-    var material = Cesium.Material.fromType('SlopeRamp');
-    material.uniforms.image = getColorRamp();
-    
-    viewer.scene.globe.material = material;
+        });
+        
+        viewer.scene.globe.material = material;
+    });
 }

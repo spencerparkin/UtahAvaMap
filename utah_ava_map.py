@@ -29,9 +29,12 @@ if __name__ == '__main__':
             'server.socket_port': port,
         },
         '/': {
-            'tools.staticdir.root': root_dir,
             'tools.staticdir.on': True,
-            'tools.staticdir.dir': ''
+            'tools.staticdir.dir': root_dir
+        },
+        '/dev': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': r'c:\dev\cesium_spencer\Build\Cesium'
         }
     }
     cherrypy.quickstart(server, '/', config=config)
