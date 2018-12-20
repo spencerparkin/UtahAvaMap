@@ -24,14 +24,10 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
     float slope_max = slope_prime + slope_prime_radius;
     
     // The applicability of the danger rating color is based on slope angle.
-    if(slope < slope_min) {
+    if(slope < slope_min || slope > slope_max) {
         material.alpha = 0.0;   // Fully transparent.
-    } else if(slope_min <= slope && slope <= slope_prime) {
-        material.alpha = clamp((slope - slope_min) / (slope_prime - slope_min), 0.0, 1.0);
-    } else if(slope_prime <= slope && slope <= slope_max) {
-        material.alpha = clamp(1.0 - (slope - slope_prime) / (slope_max - slope_prime), 0.0, 1.0);
-    } else if(slope > slope_max) {
-        material.alpha = 0.0;   // Fully transparent.
+    } else if(slope_min <= slope && slope <= slope_max) {
+        material.alpha = 1.0;   // Fully opaque.
     }
     
     // Determine which level of the avalanche rose is applicable.
