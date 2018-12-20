@@ -2,7 +2,8 @@
 
 var viewer = null;
 var viewModel = {
-    slope_prime_radius: 15.0
+    slope_prime_radius: 15.0,
+    slope_prime_alpha: 0.7
 };
 var ava_material = null;
 
@@ -37,7 +38,8 @@ var init_map = function() {
                     rose20: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
                     rose21: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
                     // Look at slopes in the range [P-15,P+15], where P is the prime avalanche slope angle (38 degrees.)
-                    slope_prime_radius: viewModel.slope_prime_radius
+                    slope_prime_radius: viewModel.slope_prime_radius,
+                    slope_prime_alpha: viewModel.slope_prime_alpha
                 }
             }
         });
@@ -51,6 +53,9 @@ window.onload = function() {
     Cesium.knockout.applyBindings(viewModel, document.getElementById('cesiumControls'));
     Cesium.knockout.getObservable(viewModel, 'slope_prime_radius').subscribe(() => {
         ava_material.uniforms.slope_prime_radius = viewModel.slope_prime_radius;
+    });
+    Cesium.knockout.getObservable(viewModel, 'slope_prime_alpha').subscribe(() => {
+        ava_material.uniforms.slope_prime_alpha = viewModel.slope_prime_alpha;
     });
     
     init_map();

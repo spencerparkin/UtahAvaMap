@@ -10,6 +10,7 @@ uniform vec4 rose21;    // Above 9500, W through SE
 
 // 38 degrees +/- this radius gives our coloring range.
 uniform float slope_prime_radius;
+uniform float slope_prime_alpha;
 
 czm_material czm_getMaterial(czm_materialInput materialInput) {
     czm_material material = czm_getDefaultMaterial(materialInput);
@@ -25,9 +26,9 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
     
     // The applicability of the danger rating color is based on slope angle.
     if(slope < slope_min || slope > slope_max) {
-        material.alpha = 0.0;   // Fully transparent.
+        material.alpha = 0.0;
     } else if(slope_min <= slope && slope <= slope_max) {
-        material.alpha = 1.0;   // Fully opaque.
+        material.alpha = slope_prime_alpha;
     }
     
     // Determine which level of the avalanche rose is applicable.
