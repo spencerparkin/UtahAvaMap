@@ -15,8 +15,8 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
     czm_material material = czm_getDefaultMaterial(materialInput);
     
     float pi = 3.1415926536;
-    float aspect = materialInput.aspect * (360.0 / pi);     // This is in degrees [0,360); 0 degrees is East.
-    float slope = materialInput.slope * (360.0 / pi);       // This is in degrees [0,90); 0 degrees is flat, 90 is vertical.
+    float aspect = materialInput.aspect * (180.0 / pi);     // This is in degrees [0,360); 0 degrees is East.
+    float slope = materialInput.slope * (180.0 / pi);       // This is in degrees [0,90); 0 degrees is flat, 90 is vertical.
     float elevation = materialInput.height;                 // This is in meters; -414.0 is dead sea elevation, 8777.0 is everest elevation.
     
     float slope_prime = 38.0;   // This is the best slope angle for avalanches.
