@@ -1,6 +1,6 @@
 // utah_ava_map.glsl
 
-// Each component is 0.0 (green), 0.25 (moderate), 0.5 (considerable), 0.75 (high) or 1.0 (extreme)
+// Each component is 0.0 (low), 0.25 (moderate), 0.5 (considerable), 0.75 (high) or 1.0 (extreme)
 uniform vec4 rose00;    // Below 8000, E through NW
 uniform vec4 rose01;    // Below 8000, W through SE
 uniform vec4 rose10;    // 8000-9500, E through NW

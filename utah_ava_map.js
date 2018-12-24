@@ -58,14 +58,48 @@ var init_map = function() {
         ava_material.uniforms.slope_prime_alpha = viewModel.slope_prime_alpha;
     });
     Cesium.knockout.getObservable(viewModel, 'ava_region').subscribe(() => {
-        /*promiseAvaRose(viewModel.ava_region).then(ava_rose => {
-            ava_material.uniforms.rose00 = new Cesium.Color();
-            ava_material.uniforms.rose01 = new Cesium.Color();
-            ava_material.uniforms.rose10 = new Cesium.Color();
-            ava_material.uniforms.rose11 = new Cesium.Color();
-            ava_material.uniforms.rose20 = new Cesium.Color();
-            ava_material.uniforms.rose21 = new Cesium.Color();
-        });*/
+        promiseAvaRose(viewModel.ava_region).then(ava_rose_data => {
+            try {
+                ava_material.uniforms.rose00 = new Cesium.Color(
+                    getUniformDataFromRoseData(ava_rose_data, 'east', 7500),
+                    getUniformDataFromRoseData(ava_rose_data, 'north-east', 7500),
+                    getUniformDataFromRoseData(ava_rose_data, 'north', 7500),
+                    getUniformDataFromRoseData(ava_rose_data, 'north-west', 7500)
+                );
+                ava_material.uniforms.rose01 = new Cesium.Color(
+                    getUniformDataFromRoseData(ava_rose_data, 'west', 7500),
+                    getUniformDataFromRoseData(ava_rose_data, 'south-west', 7500),
+                    getUniformDataFromRoseData(ava_rose_data, 'south', 7500),
+                    getUniformDataFromRoseData(ava_rose_data, 'south-east', 7500)
+                );
+                ava_material.uniforms.rose10 = new Cesium.Color(
+                   getUniformDataFromRoseData(ava_rose_data, 'east', 9000),
+                   getUniformDataFromRoseData(ava_rose_data, 'north-east', 9000),
+                   getUniformDataFromRoseData(ava_rose_data, 'north', 9000),
+                   getUniformDataFromRoseData(ava_rose_data, 'north-west', 9000)
+                );
+                ava_material.uniforms.rose11 = new Cesium.Color(
+                    getUniformDataFromRoseData(ava_rose_data, 'west', 9000),
+                    getUniformDataFromRoseData(ava_rose_data, 'south-west', 9000),
+                    getUniformDataFromRoseData(ava_rose_data, 'south', 9000),
+                    getUniformDataFromRoseData(ava_rose_data, 'south-east', 9000)
+                );
+                ava_material.uniforms.rose20 = new Cesium.Color(
+                    getUniformDataFromRoseData(ava_rose_data, 'east', 11000),
+                    getUniformDataFromRoseData(ava_rose_data, 'north-east', 11000),
+                    getUniformDataFromRoseData(ava_rose_data, 'north', 11000),
+                    getUniformDataFromRoseData(ava_rose_data, 'north-west', 11000)
+                );
+                ava_material.uniforms.rose21 = new Cesium.Color(
+                    getUniformDataFromRoseData(ava_rose_data, 'west', 11000),
+                    getUniformDataFromRoseData(ava_rose_data, 'south-west', 11000),
+                    getUniformDataFromRoseData(ava_rose_data, 'south', 11000),
+                    getUniformDataFromRoseData(ava_rose_data, 'south-east', 11000)
+                );
+            } catch(e) {
+                console.log(e);
+            }
+        });
     });
 
     viewer.camera.changed.addEventListener(event => {
@@ -126,7 +160,50 @@ function screenCoordsToCartographic(screen_point) {
     return undefined;
 }
 
-function promiseAvaRose() {
+function getUniformDataFromRoseData(rose_data, heading, altitude) {
+    let heading_data = rose_data[heading];
+    for(let i = 0; i < heading_data.length; i++) {
+        let entry = heading_data[i];
+        if(entry.altitude[0] <= altitude && altitude < entry.altitude[1]) {
+            let hazard_level = entry.hazard_level;
+            if(hazard_level === 'low') {
+                return 0.0;
+            } else if(hazard_level === 'moderate') {
+                return 0.25;
+            } else if(hazard_level === 'considerable') {
+                return 0.5;
+            } else if(hazard_level === 'high') {
+                return 0.75;
+            } else if(hazard_level == 'extreme') {
+                return 1.0;
+            }
+        }
+    }
+    throw 'Failed to determine hazard level uniform value.';
+}
+
+function promiseAvaRose(ava_region) {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: 'ava_rose_data',
+            dataType: 'json',
+            data: {
+                'ava_region': ava_region
+            },
+            success: json_data => {
+                if('error' in json_data) {
+                    alert(json_data['error']);
+                    reject();
+                } else {
+                    resolve(json_data);
+                }
+            },
+            failure: error => {
+                alert(error);
+                reject();
+            }
+        });
+    });
 }
 
 function promiseAvaRegions() {
