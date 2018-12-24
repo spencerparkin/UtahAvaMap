@@ -23,9 +23,9 @@ class WebServer(object):
     @cherrypy.tools.json_out()
     def ava_rose_image(self, **kwargs):
         try:
-            ava_region = kwargs['region']
+            ava_region = kwargs['ava_region']
             image_url = self._find_ava_rose_image_url(ava_region)
-            return image_url
+            return {'ava_rose_image_url': image_url}
         except Exception as ex:
             return {'error': str(ex)}
 
@@ -41,8 +41,11 @@ class WebServer(object):
             image_data = io.BytesIO(response.content)
             image = Image.open(image_data)
             image = image.convert('RGB')
-            rose_data = self._construct_ava_rose_data_from_image(image)
-            return rose_data
+            ava_rose_data = self._construct_ava_rose_data_from_image(image)
+            return {
+                'ava_rose_data': ava_rose_data,
+                'ava_rose_image_url': image_url
+            }
         except Exception as ex:
             return {'error': str(ex)}
 

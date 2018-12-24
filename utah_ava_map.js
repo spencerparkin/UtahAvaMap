@@ -4,7 +4,8 @@ var viewer = null;
 var viewModel = {
     slope_prime_radius: 15.0,
     slope_prime_alpha: 0.7,
-    ava_region: ''
+    ava_region: '',
+    ava_rose_image_url: ''
 };
 var ava_material = null;
 var ava_regions_map = null;
@@ -68,8 +69,10 @@ var init_map = function() {
         ava_material.uniforms.slope_prime_alpha = viewModel.slope_prime_alpha;
     });
     Cesium.knockout.getObservable(viewModel, 'ava_region').subscribe(() => {
-        promiseAvaRose(viewModel.ava_region).then(ava_rose_data => {
+        promiseAvaRose(viewModel.ava_region).then(json_data => {
             try {
+                let ava_rose_data = json_data.ava_rose_data;
+                viewModel.ava_rose_image_url = json_data.ava_rose_image_url;
                 ava_material.uniforms.rose00 = new Cesium.Color(
                     getUniformDataFromRoseData(ava_rose_data, 'east', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'north-east', 7500),
@@ -192,10 +195,10 @@ function getUniformDataFromRoseData(rose_data, heading, altitude) {
     throw 'Failed to determine hazard level uniform value.';
 }
 
-function promiseAvaRose(ava_region) {
+function promiseAvaRose(ava_region, image_only=false) {
     return new Promise((resolve, reject) => {
         $.ajax({
-            url: 'ava_rose_data',
+            url: image_only ? 'ava_rose_image' : 'ava_rose_data',
             dataType: 'json',
             data: {
                 'ava_region': ava_region
