@@ -14,7 +14,17 @@ var init_map = function() {
     viewer = new Cesium.Viewer('cesiumContainer', {
         terrainProvider: Cesium.createWorldTerrain({
             requestVertexNormals: true
-        })
+        }),
+        timeline: false,
+        animation: false,
+        scene3DOnly: true,
+        selectionIndicator: false,
+        sceneModePicker: false,
+        infoBox: false,
+        homeButton: false,
+        geocoder: false,
+        vrButton: false,
+        baseLayerPicker: false
     });
     
     viewer.scene.globe.enableLighting = true;
