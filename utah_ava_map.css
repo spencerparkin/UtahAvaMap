@@ -17,6 +17,14 @@
     font-family: "Courier New"
 }
 
+#cesiumControls a {
+    color: white;
+}
+
+#hover_help_info {
+    background: #00000087
+}
+
 #cesiumContainer {
     position: absolute;
     top: 0;
