@@ -157,6 +157,8 @@ window.onload = function() {
         $(event.target).css({'color': 'red', 'font-weight': 'bold'});
         $('#hover_help_info').show();
         let text = event.target.outerText;
+        if(text === undefined)
+            text = event.target.innerText;
         if(text.indexOf('Slope Radius:') !== -1) {
             $('#hover_help_info').text('The "Slope Radius" denotes the range about 38 degrees for which slopes are shaded.  For example, if the radius is 10, then slopes in the range of 28 to 48 degrees are shaded.');
         } else if(text.indexOf('Slope Alpha:') !== -1) {
