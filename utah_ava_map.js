@@ -150,6 +150,36 @@ var init_map = function() {
 
 window.onload = function() {
     init_map();
+
+    $('[class=hover_help]').hover(function(event) {
+        $(event.target).css({'color': 'red', 'font-weight': 'bold'});
+        $('#hover_help_info').show();
+        let text = event.target.outerText;
+        if(text.indexOf('Slope Radius:') !== -1) {
+            $('#hover_help_info').text('The "Slope Radius" denotes the range about 38 degrees for which slopes are shaded.  For example, if the radius is 10, then slopes in the range of 28 to 48 degrees are shaded.');
+        } else if(text.indexOf('Slope Alpha:') !== -1) {
+            $('#hover_help_info').text('The "Slope Alpha" controls the opacity (or transparency) of the slope shading on the terrain.');
+        } else if(text.indexOf('Region:') !== -1) {
+            $('#hover_help_info').text('The "Region" indicated tells you which forecast is being overlayed on the terrain.  It is determined by where you are looking on the map.');
+        } else if(text.indexOf('Height:') !== -1) {
+            $('#hover_help_info').text('The "Height" field shows the height of the terrain under the cursor.');
+        } else if(text.indexOf('Latitude:') !== -1) {
+            $('#hover_help_info').text('The "Latitude" field shows the latitude of the terrain under the cursor.');
+        } else if(text.indexOf('Longitude:') !== -1) {
+            $('#hover_help_info').text('The "Longitude" field shows the longitude of the terrain under the cursor.');
+        } else if(text.indexOf('Slope Angle:') !== -1) {
+            $('#hover_help_info').text('The "Slope Angle" field shows the slope-angle of the terrain under the cursor.  0 degrees is flat; 90 degrees is vertical.');
+        } else if(text.indexOf('Aspect:') !== -1) {
+            $('#hover_help_info').text('The "Aspect" field shows the fall-line direction of the terrain under the cursor.  0 degrees is east, 90 is north, 180 is west, 270 is south.');
+        } else if(text.indexOf('Rose:') !== -1) {
+            $('#hover_help_info').text('The "Rose" field is the current avalanche-rose forecast for the indicated "Region."');
+        } else {
+            $('#hover_help_info').text('');
+        }
+    }, function(event) {
+        $(event.target).css({'color': 'white', 'font-weight': 'normal'});
+        $('#hover_help_info').hide();
+    });
 }
 
 var calculate_slope_angle_and_aspect = function(ground_center, ground_ring_ccw) {
