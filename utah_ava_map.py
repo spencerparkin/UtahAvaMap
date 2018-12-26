@@ -252,10 +252,6 @@ if __name__ == '__main__':
         '/': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': root_dir
-        },
-        '/dev': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': r'c:\dev\cesium_spencer\Build\Cesium'
         }
     }
     cherrypy.quickstart(server, '/', config=config)
