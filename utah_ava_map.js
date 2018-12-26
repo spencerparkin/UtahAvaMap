@@ -126,7 +126,11 @@ var init_map = function() {
 
     promiseAvaRegions().then(json_data => {
         ava_regions_map = json_data;
-        updateNearestAvaRegion(); // TODO: We need to wait until the terrain is loaded too.  How do we do that?
+        // The following is a hack.  What I need to do is wait until the scene is fully loaded and rendering,
+        // but I'm not sure how to do this yet in Cesium's API.
+        setTimeout(() => {
+            updateNearestAvaRegion();
+        }, 3000);
     });
 
     let handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas, false);
