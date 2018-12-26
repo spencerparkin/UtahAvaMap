@@ -6,6 +6,7 @@ var viewModel = {
     slope_prime_alpha: 0.7,
     ava_region: '',
     ava_rose_image_url: '',
+    ava_rose_forecast_url: '',
     cursor_height: '',
     cursor_latitude: '',
     cursor_longitude: '',
@@ -78,6 +79,7 @@ var init_map = function() {
             try {
                 let ava_rose_data = json_data.ava_rose_data;
                 viewModel.ava_rose_image_url = json_data.ava_rose_image_url;
+                viewModel.ava_rose_forecast_url = json_data.ava_rose_forecast_url;
                 ava_material.uniforms.rose00 = new Cesium.Color(
                     getUniformDataFromRoseData(ava_rose_data, 'east', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'north-east', 7500),
@@ -126,11 +128,7 @@ var init_map = function() {
 
     promiseAvaRegions().then(json_data => {
         ava_regions_map = json_data;
-        // The following is a hack.  What I need to do is wait until the scene is fully loaded and rendering,
-        // but I'm not sure how to do this yet in Cesium's API.
-        setTimeout(() => {
-            updateNearestAvaRegion();
-        }, 3000);
+        updateNearestAvaRegion();
     });
 
     let handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas, false);
@@ -289,6 +287,11 @@ function updateNearestAvaRegion() {
         if(viewModel.ava_region !== ava_region) {
             viewModel.ava_region = ava_region;
         }
+    } else {
+        console.log('Failed to ray-cast center of screen against terrain.  Trying again later.');
+        setTimeout(() => {
+            updateNearestAvaRegion();
+        }, 1000);
     }
 }
 

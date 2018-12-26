@@ -21,21 +21,11 @@ class WebServer(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def ava_rose_image(self, **kwargs):
-        try:
-            ava_region = kwargs['ava_region']
-            image_url = self._find_ava_rose_image_url(ava_region)
-            return {'ava_rose_image_url': image_url}
-        except Exception as ex:
-            return {'error': str(ex)}
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
     def ava_rose_data(self, **kwargs):
         try:
             from PIL import Image
             ava_region = kwargs['ava_region']
-            image_url = self._find_ava_rose_image_url(ava_region)
+            forecast_url, image_url = self._find_ava_rose_image_url(ava_region)
             headers = self._make_request_headers()
             response = requests.get(image_url, headers=headers)
             image_data = io.BytesIO(response.content)
@@ -44,7 +34,8 @@ class WebServer(object):
             ava_rose_data = self._construct_ava_rose_data_from_image(image)
             return {
                 'ava_rose_data': ava_rose_data,
-                'ava_rose_image_url': image_url
+                'ava_rose_image_url': image_url,
+                'ava_rose_forecast_url': forecast_url
             }
         except Exception as ex:
             return {'error': str(ex)}
@@ -66,16 +57,17 @@ class WebServer(object):
         ava_region = ava_region.lower()
         if ava_region == 'saltlakecity':
             ava_region = 'salt-lake'
-        url = 'https://utahavalanchecenter.org/forecast/' + ava_region
+        forecast_url = 'https://utahavalanchecenter.org/forecast/' + ava_region
         headers = self._make_request_headers()
-        response = requests.get(url, headers=headers)
+        response = requests.get(forecast_url, headers=headers)
         html_text = response.text
         line_list = html_text.split('\n')
         regex = r'.*src="(.*forecast/.*\.png)".*'
         for line in line_list:
             match = re.match(regex, line)
             if match is not None:
-                return 'https://utahavalanchecenter.org/' + match.group(1)
+                image_url = 'https://utahavalanchecenter.org/' + match.group(1)
+                return forecast_url, image_url
         else:
             raise Exception('Failed to find avalanche rose image URL in html.')
 

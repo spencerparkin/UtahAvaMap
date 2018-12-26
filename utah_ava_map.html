@@ -15,7 +15,7 @@
             <div id="cesiumControls">
                 <div><span class="hover_help">Slope Radius: </span><span data-bind="text: slope_prime_radius"></span> degrees <input type="range" min="0.0" max="30.0" step="1.0" data-bind="value: slope_prime_radius"></div>
                 <div><span class="hover_help">Slope Alpha: </span><span data-bind="text: slope_prime_alpha"></span><input type="range" min="0.1" max="1.0" step="0.05" data-bind="value: slope_prime_alpha"></div>
-                <div><span class="hover_help">Region: </span><span data-bind="text: ava_region"></span></div>
+                <div><span class="hover_help">Region: </span><a target="_blank" data-bind="attr: {href: ava_rose_forecast_url}, text: ava_region"></a></div>
                 <div><span class="hover_help">Height: </span><span data-bind="text: cursor_height"></span></div>
                 <div><span class="hover_help">Latitude: </span><span data-bind="text: cursor_latitude"></span></div>
                 <div><span class="hover_help">Longitude: </span><span data-bind="text: cursor_longitude"></span></div>
