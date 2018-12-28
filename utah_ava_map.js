@@ -47,18 +47,35 @@ var init_map = function() {
         ava_material = new Cesium.Material({
             fabric: {
                 type: 'UtahAvaMaterial',
-                source: glsl_code,
-                uniforms: {
-                    // Default to extreme danger everywhere.  We'll update this as a function of the camera position/orientation.
-                    rose00: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
-                    rose01: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
-                    rose10: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
-                    rose11: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
-                    rose20: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
-                    rose21: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
-                    // Look at slopes in the range [P-R,P+R], where P is the prime avalanche slope angle (38 degrees.)
-                    slope_prime_radius: viewModel.slope_prime_radius,
-                    slope_prime_alpha: viewModel.slope_prime_alpha
+                materials: {
+                    RoseMaterial: {
+                        type: 'RoseMaterial',
+                        source: glsl_code,
+                        uniforms: {
+                            // Default to extreme danger everywhere.  We'll update this as a function of the camera position/orientation.
+                            rose00: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                            rose01: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                            rose10: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                            rose11: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                            rose20: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                            rose21: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                            // Look at slopes in the range [P-R,P+R], where P is the prime avalanche slope angle (38 degrees.)
+                            slope_prime_radius: viewModel.slope_prime_radius,
+                            slope_prime_alpha: viewModel.slope_prime_alpha
+                        }
+                    },
+                    contourMaterial: {
+                        type: 'ElevationContour',
+                        uniforms: {
+                            color: new Cesium.Color(0.0, 0.0, 0.0, 1.0),
+                            spacing: 30.48, // 100 feet
+                            width: 1.0, // pixels
+                        }
+                    }
+                },
+                components: {
+                    diffuse: 'contourMaterial.alpha == 0.0 ? RoseMaterial.diffuse : contourMaterial.diffuse',
+                    alpha: 'max(contourMaterial.alpha, RoseMaterial.alpha)'
                 }
             }
         });
@@ -69,10 +86,10 @@ var init_map = function() {
     Cesium.knockout.track(viewModel);
     Cesium.knockout.applyBindings(viewModel, document.getElementById('cesiumControls'));
     Cesium.knockout.getObservable(viewModel, 'slope_prime_radius').subscribe(() => {
-        ava_material.uniforms.slope_prime_radius = viewModel.slope_prime_radius;
+        ava_material.materials.RoseMaterial.uniforms.slope_prime_radius = viewModel.slope_prime_radius;
     });
     Cesium.knockout.getObservable(viewModel, 'slope_prime_alpha').subscribe(() => {
-        ava_material.uniforms.slope_prime_alpha = viewModel.slope_prime_alpha;
+        ava_material.materials.RoseMaterial.uniforms.slope_prime_alpha = viewModel.slope_prime_alpha;
     });
     Cesium.knockout.getObservable(viewModel, 'ava_region').subscribe(() => {
         promiseAvaRose(viewModel.ava_region).then(json_data => {
@@ -80,37 +97,37 @@ var init_map = function() {
                 let ava_rose_data = json_data.ava_rose_data;
                 viewModel.ava_rose_image_url = json_data.ava_rose_image_url;
                 viewModel.ava_rose_forecast_url = json_data.ava_rose_forecast_url;
-                ava_material.uniforms.rose00 = new Cesium.Color(
+                ava_material.materials.RoseMaterial.uniforms.rose00 = new Cesium.Color(
                     getUniformDataFromRoseData(ava_rose_data, 'east', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'north-east', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'north', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'north-west', 7500)
                 );
-                ava_material.uniforms.rose01 = new Cesium.Color(
+                ava_material.materials.RoseMaterial.uniforms.rose01 = new Cesium.Color(
                     getUniformDataFromRoseData(ava_rose_data, 'west', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'south-west', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'south', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'south-east', 7500)
                 );
-                ava_material.uniforms.rose10 = new Cesium.Color(
+                ava_material.materials.RoseMaterial.uniforms.rose10 = new Cesium.Color(
                    getUniformDataFromRoseData(ava_rose_data, 'east', 9000),
                    getUniformDataFromRoseData(ava_rose_data, 'north-east', 9000),
                    getUniformDataFromRoseData(ava_rose_data, 'north', 9000),
                    getUniformDataFromRoseData(ava_rose_data, 'north-west', 9000)
                 );
-                ava_material.uniforms.rose11 = new Cesium.Color(
+                ava_material.materials.RoseMaterial.uniforms.rose11 = new Cesium.Color(
                     getUniformDataFromRoseData(ava_rose_data, 'west', 9000),
                     getUniformDataFromRoseData(ava_rose_data, 'south-west', 9000),
                     getUniformDataFromRoseData(ava_rose_data, 'south', 9000),
                     getUniformDataFromRoseData(ava_rose_data, 'south-east', 9000)
                 );
-                ava_material.uniforms.rose20 = new Cesium.Color(
+                ava_material.materials.RoseMaterial.uniforms.rose20 = new Cesium.Color(
                     getUniformDataFromRoseData(ava_rose_data, 'east', 11000),
                     getUniformDataFromRoseData(ava_rose_data, 'north-east', 11000),
                     getUniformDataFromRoseData(ava_rose_data, 'north', 11000),
                     getUniformDataFromRoseData(ava_rose_data, 'north-west', 11000)
                 );
-                ava_material.uniforms.rose21 = new Cesium.Color(
+                ava_material.materials.RoseMaterial.uniforms.rose21 = new Cesium.Color(
                     getUniformDataFromRoseData(ava_rose_data, 'west', 11000),
                     getUniformDataFromRoseData(ava_rose_data, 'south-west', 11000),
                     getUniformDataFromRoseData(ava_rose_data, 'south', 11000),
