@@ -31,8 +31,8 @@ var regenerate_ava_material = function() {
             rose20: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
             rose21: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
             // Look at slopes in the range [P-R,P+R], where P is the prime avalanche slope angle (38 degrees.)
-            slope_prime_radius: viewModel.slope_prime_radius,
-            slope_prime_alpha: viewModel.slope_prime_alpha
+            slope_prime_radius: parseFloat(viewModel.slope_prime_radius),
+            slope_prime_alpha: parseFloat(viewModel.slope_prime_alpha)
         }
     };
 
@@ -120,10 +120,10 @@ var init_map = function() {
         regenerate_ava_material();
     });
     Cesium.knockout.getObservable(viewModel, 'slope_prime_radius').subscribe(() => {
-        ava_material_uniforms.slope_prime_radius = viewModel.slope_prime_radius;
+        ava_material_uniforms.slope_prime_radius = parseFloat(viewModel.slope_prime_radius);
     });
     Cesium.knockout.getObservable(viewModel, 'slope_prime_alpha').subscribe(() => {
-        ava_material_uniforms.slope_prime_alpha = viewModel.slope_prime_alpha;
+        ava_material_uniforms.slope_prime_alpha = parseFloat(viewModel.slope_prime_alpha);
     });
     Cesium.knockout.getObservable(viewModel, 'ava_region').subscribe(() => {
         promiseAvaRose(viewModel.ava_region).then(json_data => {
