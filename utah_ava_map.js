@@ -87,6 +87,9 @@ var init_map = function() {
         terrainProvider: Cesium.createWorldTerrain({
             requestVertexNormals: true
         }),
+        imageryProvider: new Cesium.ArcGisMapServerImageryProvider({
+            url: '//services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer'
+        }),
         timeline: false,
         animation: false,
         scene3DOnly: true,
