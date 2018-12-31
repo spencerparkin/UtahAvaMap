@@ -1,5 +1,8 @@
 // utah_ava_map.js
 
+// TODO: Add a check-box or a drop-down so that we can toggle between imagery providers.
+//       The topo view and terrain views are the most useful, I think.
+
 var viewer = null;
 var viewModel = {
     slope_prime_radius: 15.0,
