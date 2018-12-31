@@ -11,75 +11,10 @@ var viewModel = {
     cursor_latitude: '',
     cursor_longitude: '',
     cursor_slope_angle: '',
-    cursor_aspect_angle: '',
-    show_contour_lines: true
+    cursor_aspect_angle: ''
 };
-var ava_material_glsl_code = null;
-var ava_material_uniforms = null;
+var ava_material = null;
 var ava_regions_map = null;
-
-var regenerate_ava_material = function() {
-    let roseMaterial = {
-        type: 'RoseMaterial',
-        source: ava_material_glsl_code,
-        uniforms: {
-            // Default to extreme danger everywhere.  We'll update this as a function of the camera position/orientation.
-            rose00: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
-            rose01: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
-            rose10: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
-            rose11: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
-            rose20: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
-            rose21: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
-            // Look at slopes in the range [P-R,P+R], where P is the prime avalanche slope angle (38 degrees.)
-            slope_prime_radius: parseFloat(viewModel.slope_prime_radius),
-            slope_prime_alpha: parseFloat(viewModel.slope_prime_alpha)
-        }
-    };
-
-    let current_ava_material_uniforms = ava_material_uniforms;
-    let ava_material;
-
-    if(viewModel.show_contour_lines) {
-        ava_material = new Cesium.Material({
-            fabric: {
-                type: 'ContourRoseMaterial',
-                materials: {
-                    RoseMaterial: roseMaterial,
-                    contourMaterial: {
-                        type: 'ElevationContour',
-                        uniforms: {
-                            color: new Cesium.Color(0.0, 0.0, 0.0, 1.0),
-                            spacing: 30.48, // 100 feet
-                            width: 1.0, // pixels
-                        }
-                    }
-                },
-                components: {
-                    diffuse: 'contourMaterial.alpha == 0.0 ? RoseMaterial.diffuse : contourMaterial.diffuse',
-                    alpha: 'max(RoseMaterial.alpha, contourMaterial.alpha)'
-                }
-            }
-        });
-        ava_material_uniforms = ava_material.materials.RoseMaterial.uniforms;
-    } else {
-        ava_material = new Cesium.Material({
-            fabric: roseMaterial
-        });
-        ava_material_uniforms = ava_material.uniforms;
-    }
-
-    if(current_ava_material_uniforms !== null) {
-        for(let prop in current_ava_material_uniforms) {
-            if(current_ava_material_uniforms.hasOwnProperty(prop)) {
-                if(ava_material_uniforms.hasOwnProperty(prop)) {
-                    ava_material_uniforms[prop] = current_ava_material_uniforms[prop];
-                }
-            }
-        }
-    }
-
-    viewer.scene.globe.material = ava_material;
-}
 
 var init_map = function() {
     Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIyZjBmNGUxMi1mNjYyLTQ4NTMtYjdkZC03ZGJkMzZlMzYyZWQiLCJpZCI6NTA2Miwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MjMwODg2MH0.MJB-IG9INCNEA0ydUvprHcUTLdKDbnPpkWG6DCqXKQc';
@@ -112,21 +47,35 @@ var init_map = function() {
     viewer.camera.setView({destination: rect});
     
     promiseAvaMapShader().then(glsl_code => {
-        ava_material_glsl_code = glsl_code;
-        regenerate_ava_material();
+        ava_material = new Cesium.Material({
+            fabric: {
+                type: 'UtahAvaMaterial',
+                source: glsl_code,
+                uniforms: {
+                    // Default to extreme danger everywhere.  We'll update this as a function of the camera position/orientation.
+                    rose00: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                    rose01: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                    rose10: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                    rose11: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                    rose20: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                    rose21: new Cesium.Color(1.0, 1.0, 1.0, 1.0),
+                    // Look at slopes in the range [P-R,P+R], where P is the prime avalanche slope angle (38 degrees.)
+                    slope_prime_radius: viewModel.slope_prime_radius,
+                    slope_prime_alpha: viewModel.slope_prime_alpha
+                }
+            }
+        });
+        
+        viewer.scene.globe.material = ava_material;
     });
 
     Cesium.knockout.track(viewModel);
     Cesium.knockout.applyBindings(viewModel, document.getElementById('cesiumControls'));
-    Cesium.knockout.getObservable(viewModel, 'show_contour_lines').subscribe(() => {
-        // Regenerating the material is best, because the shader is faster without contour lines.
-        regenerate_ava_material();
-    });
     Cesium.knockout.getObservable(viewModel, 'slope_prime_radius').subscribe(() => {
-        ava_material_uniforms.slope_prime_radius = parseFloat(viewModel.slope_prime_radius);
+        ava_material.uniforms.slope_prime_radius = parseFloat(viewModel.slope_prime_radius);
     });
     Cesium.knockout.getObservable(viewModel, 'slope_prime_alpha').subscribe(() => {
-        ava_material_uniforms.slope_prime_alpha = parseFloat(viewModel.slope_prime_alpha);
+        ava_material.uniforms.slope_prime_alpha = parseFloat(viewModel.slope_prime_alpha);
     });
     Cesium.knockout.getObservable(viewModel, 'ava_region').subscribe(() => {
         promiseAvaRose(viewModel.ava_region).then(json_data => {
@@ -134,37 +83,37 @@ var init_map = function() {
                 let ava_rose_data = json_data.ava_rose_data;
                 viewModel.ava_rose_image_url = json_data.ava_rose_image_url;
                 viewModel.ava_rose_forecast_url = json_data.ava_rose_forecast_url;
-                ava_material_uniforms.rose00 = new Cesium.Color(
+                ava_material.uniforms.rose00 = new Cesium.Color(
                     getUniformDataFromRoseData(ava_rose_data, 'east', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'north-east', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'north', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'north-west', 7500)
                 );
-                ava_material_uniforms.rose01 = new Cesium.Color(
+                ava_material.uniforms.rose01 = new Cesium.Color(
                     getUniformDataFromRoseData(ava_rose_data, 'west', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'south-west', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'south', 7500),
                     getUniformDataFromRoseData(ava_rose_data, 'south-east', 7500)
                 );
-                ava_material_uniforms.rose10 = new Cesium.Color(
+                ava_material.uniforms.rose10 = new Cesium.Color(
                    getUniformDataFromRoseData(ava_rose_data, 'east', 9000),
                    getUniformDataFromRoseData(ava_rose_data, 'north-east', 9000),
                    getUniformDataFromRoseData(ava_rose_data, 'north', 9000),
                    getUniformDataFromRoseData(ava_rose_data, 'north-west', 9000)
                 );
-                ava_material_uniforms.rose11 = new Cesium.Color(
+                ava_material.uniforms.rose11 = new Cesium.Color(
                     getUniformDataFromRoseData(ava_rose_data, 'west', 9000),
                     getUniformDataFromRoseData(ava_rose_data, 'south-west', 9000),
                     getUniformDataFromRoseData(ava_rose_data, 'south', 9000),
                     getUniformDataFromRoseData(ava_rose_data, 'south-east', 9000)
                 );
-                ava_material_uniforms.rose20 = new Cesium.Color(
+                ava_material.uniforms.rose20 = new Cesium.Color(
                     getUniformDataFromRoseData(ava_rose_data, 'east', 11000),
                     getUniformDataFromRoseData(ava_rose_data, 'north-east', 11000),
                     getUniformDataFromRoseData(ava_rose_data, 'north', 11000),
                     getUniformDataFromRoseData(ava_rose_data, 'north-west', 11000)
                 );
-                ava_material_uniforms.rose21 = new Cesium.Color(
+                ava_material.uniforms.rose21 = new Cesium.Color(
                     getUniformDataFromRoseData(ava_rose_data, 'west', 11000),
                     getUniformDataFromRoseData(ava_rose_data, 'south-west', 11000),
                     getUniformDataFromRoseData(ava_rose_data, 'south', 11000),
@@ -231,8 +180,6 @@ window.onload = function() {
             $('#hover_help_info').text('The "Aspect" field shows the fall-line direction of the terrain under the cursor.  0 degrees is east, 90 is north, 180 is west, 270 is south.');
         } else if(text.indexOf('Rose:') !== -1) {
             $('#hover_help_info').text('The "Rose" field is the current avalanche-rose forecast for the indicated "Region."');
-        } else if(text.indexOf('Contour Lines:') !== -1) {
-            $('#hover_help_info').text('Use this to toggle contour lines on/off.  Lines are drawn every 100 feet.');
         } else {
             $('#hover_help_info').text('');
         }
