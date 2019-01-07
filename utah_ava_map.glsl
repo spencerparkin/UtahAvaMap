@@ -79,5 +79,7 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
         material.diffuse = vec3(1.0, 1.0, 1.0);     // Something is wrong here.
     }
     
+    material.diffuse = czm_gammaCorrect(material.diffuse);
+    
     return material;
 }
