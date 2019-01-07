@@ -1,12 +1,9 @@
 // utah_ava_map.js
 
-// TODO: Add a check-box or a drop-down so that we can toggle between imagery providers.
-//       The topo view and terrain views are the most useful, I think.
-
 var viewer = null;
 var viewModel = {
     slope_prime_radius: 15.0,
-    slope_prime_alpha: 0.7,
+    slope_prime_alpha: 0.3,
     ava_region: '',
     ava_rose_image_url: '',
     ava_rose_forecast_url: '',
@@ -14,7 +11,9 @@ var viewModel = {
     cursor_latitude: '',
     cursor_longitude: '',
     cursor_slope_angle: '',
-    cursor_aspect_angle: ''
+    cursor_aspect_angle: '',
+    image_layer_list: ['Terrain', 'Topological'],
+    image_layer: 'Terrain'
 };
 var ava_material = null;
 var ava_regions_map = null;
@@ -25,9 +24,6 @@ var init_map = function() {
         terrainProvider: Cesium.createWorldTerrain({
             requestVertexNormals: true
         }),
-        imageryProvider: new Cesium.ArcGisMapServerImageryProvider({
-            url: '//services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer'
-        }),
         timeline: false,
         animation: false,
         scene3DOnly: true,
@@ -37,7 +33,7 @@ var init_map = function() {
         homeButton: false,
         geocoder: false,
         vrButton: false,
-        baseLayerPicker: false
+        baseLayerPicker: false,
     });
     
     viewer.scene.globe.enableLighting = true;
@@ -77,6 +73,23 @@ var init_map = function() {
 
     Cesium.knockout.track(viewModel);
     Cesium.knockout.applyBindings(viewModel, document.getElementById('cesiumControls'));
+    Cesium.knockout.getObservable(viewModel, 'image_layer').subscribe(() => {
+        let newImageProvider;
+        if(viewModel.image_layer === 'Terrain') {
+            newImageProvider = new Cesium.ArcGisMapServerImageryProvider({
+                url: '//services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer'
+            });
+        } else if(viewModel.image_layer === 'Topological') {
+            newImageProvider = new Cesium.ArcGisMapServerImageryProvider({
+                url: '//services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer'
+            });
+        }
+        if(Cesium.defined(newImageProvider)) {
+            let currentImageProvider = viewer.imageryLayers.get(0);
+            viewer.imageryLayers.remove(currentImageProvider);
+            viewer.imageryLayers.add(new Cesium.ImageryLayer(newImageProvider));
+        }
+    });
     Cesium.knockout.getObservable(viewModel, 'slope_prime_radius').subscribe(() => {
         ava_material.uniforms.slope_prime_radius = parseFloat(viewModel.slope_prime_radius);
     });
