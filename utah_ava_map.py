@@ -195,9 +195,9 @@ class WebServer(object):
             'moderate': (255.0, 242.0, 0.0),
             'considerable': (247.0, 148.0, 30.0),
             'high': (237.0, 28.0, 36.0),
-            'extreme': (34.0, 34.0, 34.0)
+            'extreme': (0.0, 0.0, 0.0)
         }
-        epsilon = 1e-5
+        epsilon = 1e-2
         for hazard_level in hazard_level_map:
             color = hazard_level_map[hazard_level]
             if math.sqrt(sum([(color[i] - pixel[i]) ** 2 for i in range(0, 3)])) < epsilon:
