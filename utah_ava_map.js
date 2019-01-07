@@ -42,6 +42,9 @@ var init_map = function() {
     
     viewer.scene.globe.enableLighting = true;
     
+    viewer.clockViewModel.shouldAnimation = false;
+    viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601('2017-09-22T16:00:00Z');
+    
     let west = -111.7287239132627;
     let east = -111.6729336993894;
     let north = 40.66047397914876;
