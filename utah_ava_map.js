@@ -13,12 +13,19 @@ var viewModel = {
     cursor_slope_angle: '',
     cursor_aspect_angle: '',
     image_layer_list: ['Terrain', 'Topological'],
-    image_layer: 'Terrain'
+    image_layer: 'Topological'
 };
 var ava_material = null;
 var ava_regions_map = null;
 
 var init_map = function() {
+    var terrain_image_provider = new Cesium.ArcGisMapServerImageryProvider({
+        url: '//services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer'
+    });
+    var topo_image_provider = new Cesium.ArcGisMapServerImageryProvider({
+        url: '//services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer'
+    });
+    
     Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIyZjBmNGUxMi1mNjYyLTQ4NTMtYjdkZC03ZGJkMzZlMzYyZWQiLCJpZCI6NTA2Miwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MjMwODg2MH0.MJB-IG9INCNEA0ydUvprHcUTLdKDbnPpkWG6DCqXKQc';
     viewer = new Cesium.Viewer('cesiumContainer', {
         terrainProvider: Cesium.createWorldTerrain({
@@ -34,6 +41,7 @@ var init_map = function() {
         geocoder: false,
         vrButton: false,
         baseLayerPicker: false,
+        imageryProvider: topo_image_provider
     });
     
     viewer.scene.globe.enableLighting = true;
@@ -76,17 +84,13 @@ var init_map = function() {
     Cesium.knockout.getObservable(viewModel, 'image_layer').subscribe(() => {
         let newImageProvider;
         if(viewModel.image_layer === 'Terrain') {
-            newImageProvider = new Cesium.ArcGisMapServerImageryProvider({
-                url: '//services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer'
-            });
+            newImageProvider = terrain_image_provider;
         } else if(viewModel.image_layer === 'Topological') {
-            newImageProvider = new Cesium.ArcGisMapServerImageryProvider({
-                url: '//services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer'
-            });
+            newImageProvider = topo_image_provider;
         }
         if(Cesium.defined(newImageProvider)) {
             let currentImageProvider = viewer.imageryLayers.get(0);
-            viewer.imageryLayers.remove(currentImageProvider);
+            viewer.imageryLayers.remove(currentImageProvider, false);
             viewer.imageryLayers.add(new Cesium.ImageryLayer(newImageProvider));
         }
     });
