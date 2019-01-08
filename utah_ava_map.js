@@ -165,9 +165,9 @@ var init_map = function() {
                 let ground_data = calculate_slope_angle_and_aspect(ground_points.center, ground_points.ring_vertices);
                 let positionCartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(ground_points.center);
                 let feetPerMeter = 3.2808;
-                viewModel.cursor_height = (positionCartographic.height * feetPerMeter).toFixed(2) + ' feet';
-                viewModel.cursor_latitude = (positionCartographic.latitude * 180.0 / Math.PI).toFixed(10) + ' degrees';
-                viewModel.cursor_longitude = (positionCartographic.longitude * 180.0 / Math.PI).toFixed(10) + ' degrees';
+                viewModel.cursor_height = (positionCartographic.height * feetPerMeter).toFixed(0) + ' feet (' + positionCartographic.height.toFixed(0) + ' meters)';
+                viewModel.cursor_latitude = formatCartographicAngleString(positionCartographic.latitude) + ' N';
+                viewModel.cursor_longitude = formatCartographicAngleString(positionCartographic.longitude) + ' W';
                 viewModel.cursor_slope_angle = (ground_data.slope_angle * 180.0 / Math.PI).toFixed(2) + ' degrees';
                 viewModel.cursor_aspect_angle = (ground_data.aspect * 180.0 / Math.PI).toFixed(2) + ' degrees (' + ground_data.heading + ')';
             }
@@ -176,40 +176,28 @@ var init_map = function() {
     );
 }
 
+var formatCartographicAngleString = function(radians) {
+    let degrees = radians * 180.0 / Math.PI;
+    let degrees_rounded = Math.floor(degrees);
+    let minutes = Math.floor(60.0 * (degrees - degrees_rounded));
+    let seconds = Math.floor(60.0 * (60.0 * (degrees - degrees_rounded) - minutes));
+    let formatted = degrees_rounded.toString() + '° ' + minutes.toString() + "' " + seconds.toString() + '" ';
+    return formatted;
+}
+
+var formatCartographicString = function(cartographic) {
+    let latitudeSuffix = ' N';
+    if(cartographic.latitude < 0.0)
+        latitudeSuffix = ' S';
+    let longitudeSuffix = ' E';
+    if(cartographic.longitude < 0.0)
+        longitudeSuffix = ' W';
+    let formatted = formatCartographicAngleString(cartographic.latitude) + latitudeSuffix + formatCartographicAngleString(cartographic.longitude) + longitudeSuffix;
+    return formatted;
+}
+
 window.onload = function() {
     init_map();
-
-    $('[class=hover_help]').hover(function(event) {
-        $(event.target).css({'color': 'red', 'font-weight': 'bold'});
-        $('#hover_help_info').show();
-        let text = event.target.outerText;
-        if(text === undefined)
-            text = event.target.innerText;
-        if(text.indexOf('Slope Radius:') !== -1) {
-            $('#hover_help_info').text('The "Slope Radius" denotes the range about 38 degrees for which slopes are shaded.  For example, if the radius is 10, then slopes in the range of 28 to 48 degrees are shaded.');
-        } else if(text.indexOf('Slope Alpha:') !== -1) {
-            $('#hover_help_info').text('The "Slope Alpha" controls the opacity (or transparency) of the slope shading on the terrain.');
-        } else if(text.indexOf('Region:') !== -1) {
-            $('#hover_help_info').text('The "Region" indicated tells you which forecast is being overlayed on the terrain.  It is determined by where you are looking on the map.');
-        } else if(text.indexOf('Height:') !== -1) {
-            $('#hover_help_info').text('The "Height" field shows the height of the terrain under the cursor.');
-        } else if(text.indexOf('Latitude:') !== -1) {
-            $('#hover_help_info').text('The "Latitude" field shows the latitude of the terrain under the cursor.');
-        } else if(text.indexOf('Longitude:') !== -1) {
-            $('#hover_help_info').text('The "Longitude" field shows the longitude of the terrain under the cursor.');
-        } else if(text.indexOf('Slope Angle:') !== -1) {
-            $('#hover_help_info').text('The "Slope Angle" field shows the slope-angle of the terrain under the cursor.  0 degrees is flat; 90 degrees is vertical.');
-        } else if(text.indexOf('Aspect:') !== -1) {
-            $('#hover_help_info').text('The "Aspect" field shows the fall-line direction of the terrain under the cursor.  0 degrees is east, 90 is north, 180 is west, 270 is south.');
-        } else if(text.indexOf('Rose:') !== -1) {
-            $('#hover_help_info').text('The "Rose" field is the current avalanche-rose forecast for the indicated "Region."');
-        } else {
-            $('#hover_help_info').text('');
-        }
-    }, function(event) {
-        $(event.target).css({'color': 'white', 'font-weight': 'normal'});
-        $('#hover_help_info').hide();
-    });
 }
 
 var calculate_slope_angle_and_aspect = function(ground_center, ground_ring_ccw) {

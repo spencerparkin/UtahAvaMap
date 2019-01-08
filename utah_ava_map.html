@@ -13,17 +13,38 @@
     <body>
         <div id="mainContainer">
             <div id="cesiumControls">
-                <div><span class="hover_help">Image Layer: </span><select data-bind="options: image_layer_list, value: image_layer"></select></div>
-                <div><span class="hover_help">Slope Radius: </span><span data-bind="text: slope_prime_radius"></span> degrees <input type="range" min="0.0" max="30.0" step="1.0" data-bind="value: slope_prime_radius"></div>
-                <div><span class="hover_help">Slope Alpha: </span><span data-bind="text: slope_prime_alpha"></span><input type="range" min="0.1" max="1.0" step="0.05" data-bind="value: slope_prime_alpha"></div>
-                <div><span class="hover_help">Region: </span><a target="_blank" data-bind="attr: {href: ava_rose_forecast_url}, text: ava_region"></a></div>
-                <div><span class="hover_help">Height: </span><span data-bind="text: cursor_height"></span></div>
-                <div><span class="hover_help">Latitude: </span><span data-bind="text: cursor_latitude"></span></div>
-                <div><span class="hover_help">Longitude: </span><span data-bind="text: cursor_longitude"></span></div>
-                <div><span class="hover_help">Slope Angle: </span><span data-bind="text: cursor_slope_angle"></span></div>
-                <div><span class="hover_help">Aspect: </span><span data-bind="text: cursor_aspect_angle"></span></div>
-                <div><span class="hover_help">Rose: </span><img width="200px" height="200px" data-bind="attr: {src: ava_rose_image_url}"/></div>
-                <div id="hover_help_info"></div>
+                <form>
+                    <span class="first_column"><label for="image_layer_dropdown">Image Layer:</label></span>
+                    <span class="second_column"><select id="image_layer_dropdown" data-bind="options: image_layer_list, value: image_layer"></select></span>
+                    
+                    <span class="first_column"><label for="slope_prime_radius_slider">Slope Radius:</label></span>
+                    <span class="second_column"><input id="slope_prime_radius_slider" type="range" min="0.0" max="30.0" step="1.0" data-bind="value: slope_prime_radius"><span data-bind="text: slope_prime_radius"></span> degrees</span>
+                    
+                    <span class="first_column"><label for="slope_prime_alpha_slider">Slope Alpha:</label></span>
+                    <span class="second_column"><input id="slope_prime_alpha_slider" type="range" min="0.1" max="1.0" step="0.05" data-bind="value: slope_prime_alpha"><span data-bind="text: slope_prime_alpha"></span></span>
+            
+                    <span class="first_column"><label for="region_link">Region:</label></span>
+                    <span class="second_column"><a id="region_link" target="_blank" data-bind="attr: {href: ava_rose_forecast_url}, text: ava_region"></a></span>
+                    
+                    <span class="first_column"><label for="height_readout">Height:</label></span>
+                    <span class="second_column"><span id="height_readout" data-bind="text: cursor_height"></span></span>
+                    
+                    <span class="first_column"><label for="latitude_readout">Latitude:</label></span>
+                    <span class="second_column"><span id="latitude_readout" data-bind="text: cursor_latitude"></span></span>
+                    
+                    <span class="first_column"><label for="longitude_readout">Longitude:</label></span>
+                    <span class="second_column"><span id="longitude_readout" data-bind="text: cursor_longitude"></span></span>
+                    
+                    <span class="first_column"><label for="slope_angle_readout">Slope Angle:</label></span>
+                    <span class="second_column"><span id="slope_angle_readout" data-bind="text: cursor_slope_angle"></span></span>
+                    
+                    <span class="first_column"><label for="slope_aspect_readout">Aspect:</label></span>
+                    <span class="second_column"><span id="slope_aspect_readout" data-bind="text: cursor_aspect_angle"></span></span>
+                    
+                    <span class="first_column"><label for="ava_rose_image">Ava-Rose:</label></span>
+                    <span class="second_column"><img id="ava_rose_image" width="200px" height="200px" data-bind="attr: {src: ava_rose_image_url}"/></span>
+                    
+                </form>
             </div>
             <div id="cesiumContainer"></div>
         </div>

@@ -14,15 +14,6 @@
     left: 0;
     z-index: 1;
     color: white;
-    font-family: "Courier New"
-}
-
-#cesiumControls a {
-    color: white;
-}
-
-#hover_help_info {
-    background: #00000087
 }
 
 #cesiumContainer {
@@ -34,7 +25,28 @@
     z-index: 0;
 }
 
-#hover_help_info {
-    color: red;
+#cesiumControls a {
+    color: white;
+}
+
+form {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    grid-gap: 8px;
+}
+
+.first_column {
+    grid-column: 1 / 2;
+    text-align: right;
+    color: #e91e63;
     font-weight: bold;
+}
+
+.second_column {
+    grid-column: 2 / 3;
+    color: #d6ff00;
+}
+
+#slope_prime_alpha_slider, #slope_prime_radius_slider {
+    height: 7px;
 }
