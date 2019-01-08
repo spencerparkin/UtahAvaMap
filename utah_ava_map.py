@@ -23,6 +23,7 @@ class WebServer(object):
     @cherrypy.tools.json_out()
     def ava_rose_data(self, **kwargs):
         try:
+            # TODO: Should make API request from utahavalanchecenter.org instead of reading html, then reading image pixel data.
             from PIL import Image
             ava_region = kwargs['ava_region']
             forecast_url, image_url = self._find_ava_rose_image_url(ava_region)
