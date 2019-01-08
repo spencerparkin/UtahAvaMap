@@ -196,6 +196,10 @@ var formatCartographicString = function(cartographic) {
 
 window.onload = function() {
     init_map();
+    
+    if(localStorage.getItem('mapExplanationAcknowledged')) {
+        document.getElementById('mapUsageBox').style.display = "none";
+    }
 }
 
 var calculate_slope_angle_and_aspect = function(ground_center, ground_ring_ccw) {
@@ -431,4 +435,9 @@ function promiseAvaMapShader() {
             }
         });
     });
+}
+
+function got_it_button_clicked() {
+    document.getElementById('mapUsageBox').style.display = "none";
+    localStorage.setItem('mapExplanationAcknowledged', true);
 }
