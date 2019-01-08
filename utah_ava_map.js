@@ -8,8 +8,7 @@ var viewModel = {
     ava_rose_image_url: '',
     ava_rose_forecast_url: '',
     cursor_height: '',
-    cursor_latitude: '',
-    cursor_longitude: '',
+    cursor_location: '',
     cursor_slope_angle: '',
     cursor_aspect_angle: '',
     image_layer_list: ['Terrain', 'Topological'],
@@ -166,8 +165,7 @@ var init_map = function() {
                 let positionCartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(ground_points.center);
                 let feetPerMeter = 3.2808;
                 viewModel.cursor_height = (positionCartographic.height * feetPerMeter).toFixed(0) + ' feet (' + positionCartographic.height.toFixed(0) + ' meters)';
-                viewModel.cursor_latitude = formatCartographicAngleString(positionCartographic.latitude) + ' N';
-                viewModel.cursor_longitude = formatCartographicAngleString(positionCartographic.longitude) + ' W';
+                viewModel.cursor_location = formatCartographicString(positionCartographic);
                 viewModel.cursor_slope_angle = (ground_data.slope_angle * 180.0 / Math.PI).toFixed(2) + ' degrees';
                 viewModel.cursor_aspect_angle = (ground_data.aspect * 180.0 / Math.PI).toFixed(2) + ' degrees (' + ground_data.heading + ')';
             }
@@ -192,7 +190,7 @@ var formatCartographicString = function(cartographic) {
     let longitudeSuffix = ' E';
     if(cartographic.longitude < 0.0)
         longitudeSuffix = ' W';
-    let formatted = formatCartographicAngleString(cartographic.latitude) + latitudeSuffix + formatCartographicAngleString(cartographic.longitude) + longitudeSuffix;
+    let formatted = formatCartographicAngleString(Math.abs(cartographic.latitude)) + latitudeSuffix + ' ' + formatCartographicAngleString(Math.abs(cartographic.longitude)) + longitudeSuffix;
     return formatted;
 }
 
