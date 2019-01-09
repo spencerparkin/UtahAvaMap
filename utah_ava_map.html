@@ -12,8 +12,12 @@
     </head>
     <body>
         <div id="mainContainer">
+            <button type="button" id="show_controls_button" onclick="show_controls_button_clicked()">Show Controls</button>
             <div id="cesiumControls">
                 <form>
+                    <span class="first_column"><button type="button" onclick="retract_controls_button_clicked()">Retract</button></span>
+                    <span class="second_column"><button type="button" onclick="help_button_clicked()">Help</button></span>
+
                     <span class="first_column"><label for="image_layer_dropdown">Image Layer:</label></span>
                     <span class="second_column"><select id="image_layer_dropdown" data-bind="options: image_layer_list, value: image_layer"></select></span>
                     
@@ -40,7 +44,6 @@
                     
                     <span class="first_column"><label for="ava_rose_image">Ava-Rose:</label></span>
                     <span class="second_column"><img id="ava_rose_image" width="200px" height="200px" data-bind="attr: {src: ava_rose_image_url}"/></span>
-                    
                 </form>
             </div>
             <div id="cesiumContainer"></div>
