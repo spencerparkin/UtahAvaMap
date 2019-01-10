@@ -29,6 +29,14 @@
     font-family: arial;
 }
 
+#show_controls_button {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: none;
+}
+
 #cesiumContainer {
     position: absolute;
     top: 0;
@@ -51,7 +59,7 @@ form {
 .first_column {
     grid-column: 1 / 2;
     text-align: right;
-    color: #e91e63;
+    color: #03fdff;
     font-weight: bold;
 }
 

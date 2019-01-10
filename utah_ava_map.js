@@ -504,3 +504,22 @@ function got_it_button_clicked() {
     document.getElementById('mapUsageBox').style.display = "none";
     localStorage.setItem('mapExplanationAcknowledged', true);
 }
+
+function help_button_clicked() {
+    document.getElementById('mapUsageBox').style.display = "block";
+}
+
+function retract_controls_button_clicked() {
+    $('#cesiumControls').animate({
+        top: '-500px'
+    }, 500, () => {
+        $('#show_controls_button').css('display', 'inline-block');
+    });
+}
+
+function show_controls_button_clicked() {
+    $('#show_controls_button').css('display', 'none');
+    $('#cesiumControls').animate({
+        top: '0'
+    }, 500);
+}

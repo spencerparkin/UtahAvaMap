@@ -12,8 +12,12 @@
     </head>
     <body>
         <div id="mainContainer">
+            <button type="button" id="show_controls_button" onclick="show_controls_button_clicked()">Show Controls</button>
             <div id="cesiumControls">
                 <form>
+                    <span class="first_column"><button type="button" onclick="retract_controls_button_clicked()">Retract</button></span>
+                    <span class="second_column"><button type="button" onclick="help_button_clicked()">Help</button></span>
+
                     <span class="first_column"><label for="image_layer_dropdown">Image Layer:</label></span>
                     <span class="second_column"><select id="image_layer_dropdown" data-bind="options: image_layer_list, value: image_layer"></select></span>
                     
@@ -24,7 +28,7 @@
                     <span class="second_column"><input id="slope_prime_radius_slider" type="range" min="0.0" max="30.0" step="1.0" data-bind="value: slope_prime_radius"><span data-bind="text: slope_prime_radius"></span> degrees</span>
                     
                     <span class="first_column"><label for="slope_prime_alpha_slider">Slope Alpha:</label></span>
-                    <span class="second_column"><input id="slope_prime_alpha_slider" type="range" min="0.1" max="1.0" step="0.05" data-bind="value: slope_prime_alpha"><span data-bind="text: slope_prime_alpha"></span></span>
+                    <span class="second_column"><input id="slope_prime_alpha_slider" type="range" min="0.0" max="1.0" step="0.05" data-bind="value: slope_prime_alpha"><span data-bind="text: slope_prime_alpha"></span></span>
             
                     <span class="first_column"><label for="region_link">Region:</label></span>
                     <span class="second_column"><a id="region_link" target="_blank" data-bind="attr: {href: ava_rose_forecast_url}, text: ava_region"></a></span>
@@ -43,7 +47,6 @@
                     
                     <span class="first_column"><label for="ava_rose_image">Ava-Rose:</label></span>
                     <span class="second_column"><img id="ava_rose_image" width="200px" height="200px" data-bind="attr: {src: ava_rose_image_url}"/></span>
-                    
                 </form>
             </div>
             <div id="cesiumContainer"></div>
