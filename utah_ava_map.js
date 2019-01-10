@@ -113,7 +113,7 @@ var init_map = function() {
         ava_material.uniforms.slope_prime_alpha = parseFloat(viewModel.slope_prime_alpha);
     });
     Cesium.knockout.getObservable(viewModel, 'ava_region').subscribe(() => {
-        /*promiseAvaRose(viewModel.ava_region).then(json_data => {
+        promiseAvaRose(viewModel.ava_region).then(json_data => {
             try {
                 let ava_rose_data = json_data.ava_rose_data;
                 viewModel.ava_rose_image_url = json_data.ava_rose_image_url;
@@ -157,7 +157,7 @@ var init_map = function() {
             } catch(e) {
                 console.log(e);
             }
-        });*/
+        });
     });
 
     viewer.camera.changed.addEventListener(event => {
