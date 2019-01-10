@@ -12,10 +12,13 @@ var viewModel = {
     cursor_slope_angle: '',
     cursor_aspect_angle: '',
     image_layer_list: ['Terrain', 'Topological'],
-    image_layer: 'Topological'
+    image_layer: 'Topological',
+    show_wbskiing_icons: false
 };
 var ava_material = null;
 var ava_regions_map = null;
+var billboard_collection = null;
+var label_collection = null;
 
 var init_map = function() {
     var terrain_image_provider = new Cesium.ArcGisMapServerImageryProvider({
@@ -47,6 +50,9 @@ var init_map = function() {
     
     viewer.clockViewModel.shouldAnimation = false;
     viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601('2017-09-22T16:00:00Z');
+    
+    billboard_collection = viewer.scene.primitives.add(new Cesium.BillboardCollection({scene: viewer.scene}));
+    label_collection = viewer.scene.primitives.add(new Cesium.LabelCollection({scene: viewer.scene}));
     
     let west = -111.7287239132627;
     let east = -111.6729336993894;
@@ -93,6 +99,13 @@ var init_map = function() {
             viewer.imageryLayers.add(new Cesium.ImageryLayer(newImageProvider));
         }
     });
+    Cesium.knockout.getObservable(viewModel, 'show_wbskiing_icons').subscribe(() => {
+        if(viewModel.show_wbskiing_icons) {
+            addWBSkiingIcons();
+        } else {
+            removeWBSkiingIcons();
+        }
+    });
     Cesium.knockout.getObservable(viewModel, 'slope_prime_radius').subscribe(() => {
         ava_material.uniforms.slope_prime_radius = parseFloat(viewModel.slope_prime_radius);
     });
@@ -100,7 +113,7 @@ var init_map = function() {
         ava_material.uniforms.slope_prime_alpha = parseFloat(viewModel.slope_prime_alpha);
     });
     Cesium.knockout.getObservable(viewModel, 'ava_region').subscribe(() => {
-        promiseAvaRose(viewModel.ava_region).then(json_data => {
+        /*promiseAvaRose(viewModel.ava_region).then(json_data => {
             try {
                 let ava_rose_data = json_data.ava_rose_data;
                 viewModel.ava_rose_image_url = json_data.ava_rose_image_url;
@@ -144,7 +157,7 @@ var init_map = function() {
             } catch(e) {
                 console.log(e);
             }
-        });
+        });*/
     });
 
     viewer.camera.changed.addEventListener(event => {
@@ -435,6 +448,56 @@ function promiseAvaMapShader() {
             }
         });
     });
+}
+
+function addWBSkiingIcons() {
+    $.ajax({
+        url: 'wbskiing_icons',
+        dataType: 'json',
+        success: json_data => {
+            if('error' in json_data) {
+                alert(json_data['error']);
+                reject();
+            } else {
+                for(let i in json_data.icon_list) {
+                    let icon_entry = json_data.icon_list[i];
+                    let latitude = Cesium.Math.toRadians(icon_entry.position.latitude);
+                    let longitude = Cesium.Math.toRadians(icon_entry.position.longitude);
+                    let cartographic = new Cesium.Cartographic(longitude, latitude);
+                    let position = Cesium.Ellipsoid.WGS84.cartographicToCartesian(cartographic);
+                    label_collection.add({
+                        text: icon_entry.text,
+                        position: position,
+                        font: '12pt Helvetica',
+                        outlineColor: Cesium.Color.BLACK,
+                        outlineWidth: 1,
+                        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                        translucencyByDistance: new Cesium.NearFarScalar(1E4, 1, 3E4, 0),
+                        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                        pixelOffset: new Cesium.Cartesian2(0, -32)
+                    });
+                    billboard_collection.add({
+                        image: icon_entry.image,
+                        position: position,
+                        scaleByDistance: new Cesium.NearFarScalar(500, 1, 1E4, 0.5),
+                        height: 32,
+                        width: 32,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+                    });
+                }
+            }
+        },
+        failure: error => {
+            alert(error);
+            reject();
+        }
+    });
+}
+
+function removeWBSkiingIcons() {
+    billboard_collection.removeAll();
+    label_collection.removeAll();
 }
 
 function got_it_button_clicked() {
