@@ -67,7 +67,8 @@ class WebServer(object):
             'Summit': 'IconSummit.png',
             'Trailhead': 'IconTrailhead.png',
         }
-        return 'http://wbskiing.com/images/icons/' + image_map.get(type, 'IconUnknown.png')
+        #return 'http://wbskiing.com/images/icons/' + image_map.get(type, 'IconUnknown.png')
+        return '/icons/' + image_map.get(type, 'IconUnknown.png')   # Avoid the cross-origin problem.
     
     @cherrypy.expose
     @cherrypy.tools.json_out()
