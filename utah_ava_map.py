@@ -11,6 +11,9 @@ import math
 
 #sys.path.append(r'C:\dev\pyMath2D')
 
+# TODO: Steve doesn't want to share, but PowderProject might.
+#       Check-out: https://www.powderproject.com/data
+
 class WebServer(object):
     def __init__(self, root_dir):
         self.root_dir = root_dir
