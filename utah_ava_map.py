@@ -18,57 +18,6 @@ class WebServer(object):
     @cherrypy.expose
     def default(self, **kwargs):
         return cherrypy.lib.static.serve_file(self.root_dir + '/utah_ava_map.html', content_type='text/html')
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    def wbskiing_icons(self, **kwargs):
-        try:
-            icon_list = []
-            print('Loading WBSkiing data...')
-            import xml.etree.ElementTree as ET
-            url = 'http://wbskiing.com/db/WBSdata.xml'
-            response = requests.get(url)
-            xml_text = response.content
-            location_list = ET.fromstring(xml_text)
-            for location in location_list.findall('location'):
-                aliasTo = location.find('AliasTo').text
-                if aliasTo is not None and len(aliasTo) > 0:
-                    continue # Skip items that are alternative aliases for places.
-                name = location.find('Name').text
-                type = location.find('Type').text
-                position = location.find('Position').text
-                icon_entry = {
-                    'position': self._wbskiing_decode_position(position),
-                    'text': name,
-                    'image': self._wbskiing_icon_image_url(type)
-                }
-                icon_list.append(icon_entry)
-            return {'icon_list': icon_list}
-        except Exception as ex:
-            return {'error': str(ex)}
-    
-    def _wbskiing_decode_position(self, position):
-        return {
-            'latitude': float('40.' + position[6:12]),
-            'longitude': float('-111.' + position[0:6])
-        }
-    
-    def _wbskiing_icon_image_url(self, type):
-        image_map = {
-            'Alias': 'IconAlias.png',
-            'AvalancheFatality': 'AvalancheFatality.png',
-            'Chairlift': 'IconChairlift2.png',
-            'Drainage': 'IconDrainage.png',
-            'Lake': 'IconLake.png',
-            'Other': 'IconArrowSmaller.png',
-            'Pass': 'IconGreenArrow.png',
-            'Ridge': 'IconGreenArrow.png',
-            'Run': 'IconSki.png',
-            'Summit': 'IconSummit.png',
-            'Trailhead': 'IconTrailhead.png',
-        }
-        #return 'http://wbskiing.com/images/icons/' + image_map.get(type, 'IconUnknown.png')
-        return '/icons/' + image_map.get(type, 'IconUnknown.png')   # Avoid the cross-origin problem.
     
     @cherrypy.expose
     @cherrypy.tools.json_out()

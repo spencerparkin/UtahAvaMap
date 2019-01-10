@@ -12,8 +12,7 @@ var viewModel = {
     cursor_slope_angle: '',
     cursor_aspect_angle: '',
     image_layer_list: ['Terrain', 'Topological'],
-    image_layer: 'Topological',
-    show_wbskiing_icons: false
+    image_layer: 'Topological'
 };
 var ava_material = null;
 var ava_regions_map = null;
@@ -97,13 +96,6 @@ var init_map = function() {
             let currentImageProvider = viewer.imageryLayers.get(0);
             viewer.imageryLayers.remove(currentImageProvider, false);
             viewer.imageryLayers.add(new Cesium.ImageryLayer(newImageProvider));
-        }
-    });
-    Cesium.knockout.getObservable(viewModel, 'show_wbskiing_icons').subscribe(() => {
-        if(viewModel.show_wbskiing_icons) {
-            addWBSkiingIcons();
-        } else {
-            removeWBSkiingIcons();
         }
     });
     Cesium.knockout.getObservable(viewModel, 'slope_prime_radius').subscribe(() => {
@@ -448,56 +440,6 @@ function promiseAvaMapShader() {
             }
         });
     });
-}
-
-function addWBSkiingIcons() {
-    $.ajax({
-        url: 'wbskiing_icons',
-        dataType: 'json',
-        success: json_data => {
-            if('error' in json_data) {
-                alert(json_data['error']);
-                reject();
-            } else {
-                for(let i in json_data.icon_list) {
-                    let icon_entry = json_data.icon_list[i];
-                    let latitude = Cesium.Math.toRadians(icon_entry.position.latitude);
-                    let longitude = Cesium.Math.toRadians(icon_entry.position.longitude);
-                    let cartographic = new Cesium.Cartographic(longitude, latitude);
-                    let position = Cesium.Ellipsoid.WGS84.cartographicToCartesian(cartographic);
-                    label_collection.add({
-                        text: icon_entry.text,
-                        position: position,
-                        font: '12pt Helvetica',
-                        outlineColor: Cesium.Color.BLACK,
-                        outlineWidth: 1,
-                        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                        translucencyByDistance: new Cesium.NearFarScalar(1E4, 1, 3E4, 0),
-                        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                        pixelOffset: new Cesium.Cartesian2(0, -32)
-                    });
-                    billboard_collection.add({
-                        image: icon_entry.image,
-                        position: position,
-                        scaleByDistance: new Cesium.NearFarScalar(500, 1, 1E4, 0.5),
-                        height: 32,
-                        width: 32,
-                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
-                    });
-                }
-            }
-        },
-        failure: error => {
-            alert(error);
-            reject();
-        }
-    });
-}
-
-function removeWBSkiingIcons() {
-    billboard_collection.removeAll();
-    label_collection.removeAll();
 }
 
 function got_it_button_clicked() {
