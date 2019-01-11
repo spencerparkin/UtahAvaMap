@@ -20,6 +20,9 @@
 
                     <span class="first_column"><label for="image_layer_dropdown">Image Layer:</label></span>
                     <span class="second_column"><select id="image_layer_dropdown" data-bind="options: image_layer_list, value: image_layer"></select></span>
+
+                    <span class="first_column"><label for="show_pow_proj_trails_check">Pow-Proj Trails:</label></span>
+                    <span class="second_column"><input id="show_pow_proj_trails_check" type="checkbox" data-bind="checked: show_pow_proj_trails"/></span>
                     
                     <span class="first_column"><label for="slope_prime_radius_slider">Slope Radius:</label></span>
                     <span class="second_column"><input id="slope_prime_radius_slider" type="range" min="0.0" max="30.0" step="1.0" data-bind="value: slope_prime_radius"><span data-bind="text: slope_prime_radius"></span> degrees</span>
@@ -65,6 +68,10 @@
                     The <b><i style="color:red;">region</i></b> field shows the nearest region being viewed and is a hyper-link to the current forecast for that region.
                     The <b><i style="color:red;">height</i></b>, <b><i style="color:red;">location</i></b>, <b><i style="color:red;">slope angle</i></b> and <b><i style="color:red;">aspect</i></b> read-outs give their respective bits of information for the location directly under the mouse cursor.
                     The <b><i style="color:red;">ava-rose</i></b> field shows the current ava-rose image for the nearest region being viewed on the map.
+                </p>
+                <p>
+                    The <b><i style="color:red;">Pow-Proj Trails</i></b> field is an experimental feature.  When checked, <a href="https://www.powderproject.com/" target="_blank">Powder Project</a> trail data is
+                    overlayed on the map as labeled icons.  Click on the icons to jump to their beta-pages.
                 </p>
                 <h3 style="color:lightblue;">Disclaimer</h3>
                 <p>

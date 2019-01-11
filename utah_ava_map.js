@@ -12,12 +12,133 @@ var viewModel = {
     cursor_slope_angle: '',
     cursor_aspect_angle: '',
     image_layer_list: ['Terrain', 'Topological'],
-    image_layer: 'Topological'
+    image_layer: 'Topological',
+    show_pow_proj_trails: false
 };
 var ava_material = null;
 var ava_regions_map = null;
 var billboard_collection = null;
 var label_collection = null;
+var pow_proj_trail_cache = [];
+var pow_proj_trail_map = {};
+var utahCenter = Cesium.Cartographic.fromDegrees(-111.673769, 39.308535);
+
+class PowProjTrailCacheEntry {
+    constructor(center, radius, json_data) {
+        this.center = center;
+        this.radius = radius;
+        this.json_data = json_data;
+    }
+    
+    contains_point(point) {
+        let meters = Cesium.Cartesian3.distance(point, this.center);
+        let miles = meters / 1609.344;
+        return miles < this.radius ? true : false;
+    }
+}
+
+function promisePowProjTrailData(center) {
+    return new Promise((resolve, reject) => {
+        let cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(center);
+        let distance = cartographicDistance(cartographic, utahCenter) / 1609.344;
+        if(distance > 350.0)
+            reject('out_of_utah');
+        for(let i = 0; i < pow_proj_trail_cache.length; i++) {
+            let cache_entry = pow_proj_trail_cache[i];
+            if(cache_entry.contains_point(center)) {
+                resolve(cache_entry.json_data);
+                return;
+            }
+        }
+        
+        let radius = 30.0;
+        $.ajax({
+            url: 'https://www.powderproject.com/data/get-trails',
+            dataType: 'json',
+            data: {
+                'key': '200163729-c0d0862c9606df39c65854f74b0af71f',
+                'lat': Cesium.Math.toDegrees(cartographic.latitude),
+                'lon': Cesium.Math.toDegrees(cartographic.longitude),
+                'maxDistance': radius,
+                'maxResults': 100
+            },
+            success: json_data => {
+                if('success' in json_data && json_data.success) {
+                    let cache_entry = new PowProjTrailCacheEntry(center, radius, json_data);
+                    pow_proj_trail_cache.push(cache_entry);
+                    resolve(json_data);
+                } else {
+                    if('message' in json_data) {
+                        console.log('PowProjError: ' + json_data.message);
+                    }
+                    reject();
+                }
+            },
+            failure: error => {
+                console.log('Error: ' + error);
+                reject();
+            }
+        });
+    });
+}
+
+function updatePowProjTrailMap(trail_list) {
+    for(let i = 0; i < trail_list.length; i++) {
+        let trail_list_entry = trail_list[i];
+        if(!(trail_list_entry.id in pow_proj_trail_map)) {
+            let latitude = Cesium.Math.toRadians(parseFloat(trail_list_entry.latitude));
+            let longitude = Cesium.Math.toRadians(parseFloat(trail_list_entry.longitude));
+            let cartographic = new Cesium.Cartographic(longitude, latitude);
+            let position = Cesium.Ellipsoid.WGS84.cartographicToCartesian(cartographic);
+            let label = label_collection.add({
+                text: trail_list_entry.name,
+                position: position,
+                font: '12pt Arial',
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 1,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                translucencyByDistance: new Cesium.NearFarScalar(1E4, 1, 3E4, 0),
+                horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                pixelOffset: new Cesium.Cartesian2(0, -16)
+            });
+            let billboard = billboard_collection.add({
+                image: trail_list_entry.imgSqSmall,
+                position: position,
+                scaleByDistance: new Cesium.NearFarScalar(500, 1, 1E4, 0.5),
+                height: 32,
+                width: 32,
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+            });
+            billboard.linkForPick = trail_list_entry.url;
+            let trail_map_entry = {
+                billboard: billboard,
+                label: label
+            };
+            pow_proj_trail_map[trail_list_entry.id] = trail_map_entry;
+        }
+    }
+}
+
+function updatePowProjTrailMapForCameraChange(cartographic) {
+    let center = Cesium.Ellipsoid.WGS84.cartographicToCartesian(cartographic);
+    promisePowProjTrailData(center).then(json_data => {
+        updatePowProjTrailMap(json_data.trails);
+    }).catch(error => {
+        if(error !== 'out_of_utah') {
+            viewModel.show_pow_proj_trails = false;
+            console.log('Pow-proj trail data promise failed: ' + error);
+        }
+    });
+}
+
+function setLabelAndBillboardVisibility(visible) {
+    for(let key in pow_proj_trail_map) {
+        let trail_map_entry = pow_proj_trail_map[key];
+        trail_map_entry.billboard.show = visible;
+        trail_map_entry.label.show = visible;
+    }
+}
 
 var init_map = function() {
     var terrain_image_provider = new Cesium.ArcGisMapServerImageryProvider({
@@ -98,6 +219,15 @@ var init_map = function() {
             viewer.imageryLayers.add(new Cesium.ImageryLayer(newImageProvider));
         }
     });
+    Cesium.knockout.getObservable(viewModel, 'show_pow_proj_trails').subscribe(() => {
+        if(viewModel.show_pow_proj_trails) {
+            let cartographic = calcScreenCenterCartographic();
+            updatePowProjTrailMapForCameraChange(cartographic);
+            setLabelAndBillboardVisibility(true);
+        } else {
+            setLabelAndBillboardVisibility(false);
+        }
+    });
     Cesium.knockout.getObservable(viewModel, 'slope_prime_radius').subscribe(() => {
         ava_material.uniforms.slope_prime_radius = parseFloat(viewModel.slope_prime_radius);
     });
@@ -147,18 +277,22 @@ var init_map = function() {
                     getUniformDataFromRoseData(ava_rose_data, 'south-east', 11000)
                 );
             } catch(e) {
-                console.log(e);
+                console.log('Error: ' + e);
             }
         });
     });
 
     viewer.camera.changed.addEventListener(event => {
-        updateNearestAvaRegion();
+        let cartographic = calcScreenCenterCartographic();
+        updateNearestAvaRegion(cartographic);
+        if(viewModel.show_pow_proj_trails) {
+            updatePowProjTrailMapForCameraChange(cartographic);
+        }
     });
 
     promiseAvaRegions().then(json_data => {
         ava_regions_map = json_data;
-        updateNearestAvaRegion();
+        updateNearestAvaRegionForStartup();
     });
 
     let handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas, false);
@@ -177,6 +311,16 @@ var init_map = function() {
         },
         Cesium.ScreenSpaceEventType.MOUSE_MOVE
     );
+    
+    // Thanks go to Matthew Amato for helping me figure this out.
+    handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+    handler.setInputAction(function(movement) {
+        let pickedFeature = viewer.scene.pick(movement.position);
+        if(Cesium.defined(pickedFeature)) {
+            if(Cesium.defined(pickedFeature.primitive.linkForPick))
+                window.open(pickedFeature.primitive.linkForPick, '_blank');
+        }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 
 var formatCartographicAngleString = function(radians) {
@@ -302,19 +446,23 @@ var ground_points_from_mouse_point = function(mouse_point) {
     return undefined;
 };
 
-function updateNearestAvaRegion() {
-    let center = {x: viewer.canvas.width / 2.0, y: viewer.canvas.height / 2.0};
-    let cartographic = screenCoordsToCartographic(center);
+function updateNearestAvaRegionForStartup() {
+    let cartographic = calcScreenCenterCartographic();
+    if(Cesium.defined(cartographic)) {
+        updateNearestAvaRegion(cartographic);
+        console.log('Successfully performed initial ava-region update!');
+    } else {
+        console.log('Trying to do initial update of ava-region one second later...');
+        setTimeout(updateNearestAvaRegionForStartup, 1000);
+    }
+}
+
+function updateNearestAvaRegion(cartographic) {
     if(Cesium.defined(cartographic)) {
         let ava_region = findNearestAvaRegion(cartographic);
         if(viewModel.ava_region !== ava_region) {
-            viewModel.ava_region = ava_region;
+            viewModel.ava_region = ava_region;  // This will trigger the observer function we have watching this variable.
         }
-    } else {
-        console.log('Failed to ray-cast center of screen against terrain.  Trying again later.');
-        setTimeout(() => {
-            updateNearestAvaRegion();
-        }, 1000);
     }
 }
 
@@ -332,12 +480,12 @@ function findNearestAvaRegion(cartographic) {
     return nearest_region;
 }
 
-function cartographicDistance(cartA, cartB) {
-    return Math.sqrt(
-        (cartA.longitude - cartB.longitude) * (cartA.longitude - cartB.longitude) +
-        (cartA.latitude - cartB.latitude) * (cartA.latitude - cartB.latitude) +
-        (cartA.height - cartB.height) * (cartA.height - cartB.height)
-    );
+// For cartographics that are near-enough, this approximation is okay.
+// For those further apart, one would want to take into account the curvature of the earth.
+function cartographicDistance(cartographicA, cartographicB) {
+    let cartesianA = Cesium.Ellipsoid.WGS84.cartographicToCartesian(cartographicA);
+    let cartesianB = Cesium.Ellipsoid.WGS84.cartographicToCartesian(cartographicB);
+    return Cesium.Cartesian3.distance(cartesianA, cartesianB);
 }
 
 function screenCoordsToCartographic(screen_point) {
@@ -349,6 +497,12 @@ function screenCoordsToCartographic(screen_point) {
         }
     }
     return undefined;
+}
+
+function calcScreenCenterCartographic() {
+    let center = {x: viewer.canvas.width / 2.0, y: viewer.canvas.height / 2.0};
+    let cartographic = screenCoordsToCartographic(center);
+    return cartographic;
 }
 
 function getUniformDataFromRoseData(rose_data, heading, altitude) {
@@ -383,14 +537,14 @@ function promiseAvaRose(ava_region, image_only=false) {
             },
             success: json_data => {
                 if('error' in json_data) {
-                    alert(json_data['error']);
+                    console.log('Error: ' + json_data['error']);
                     reject();
                 } else {
                     resolve(json_data);
                 }
             },
             failure: error => {
-                alert(error);
+                console.log('Error: ' + error);
                 reject();
             }
         });
@@ -404,7 +558,7 @@ function promiseAvaRegions() {
             dataType: 'json',
             success: json_data => {
                 if('error' in json_data) {
-                    alert(json_data['error']);
+                    console.log('Error: ' + json_data['error']);
                     reject();
                 } else {
                     for(let region in json_data) {
@@ -419,7 +573,7 @@ function promiseAvaRegions() {
                 }
             },
             failure: error => {
-                alert(error);
+                console.log('Error: ' + error);
                 reject();
             }
         });
@@ -435,7 +589,7 @@ function promiseAvaMapShader() {
                 resolve(glsl_code);
             },
             failure: error => {
-                alert(error);
+                console.log('Error: ' + error);
                 reject();
             }
         });
