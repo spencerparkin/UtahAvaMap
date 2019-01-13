@@ -5,7 +5,7 @@ var viewModel = {
     slope_prime_radius: 15.0,
     slope_prime_alpha: 0.3,
     ava_region: '',
-    ava_rose_image_url: '',
+    ava_rose_image_url: 'images/loading.gif',
     ava_rose_forecast_url: '',
     cursor_height: '',
     cursor_location: '',
@@ -235,6 +235,7 @@ var init_map = function() {
         ava_material.uniforms.slope_prime_alpha = parseFloat(viewModel.slope_prime_alpha);
     });
     Cesium.knockout.getObservable(viewModel, 'ava_region').subscribe(() => {
+        viewModel.ava_rose_image_url = 'images/loading.gif';
         promiseAvaRose(viewModel.ava_region).then(json_data => {
             try {
                 let ava_rose_data = json_data.ava_rose_data;
@@ -279,6 +280,8 @@ var init_map = function() {
             } catch(e) {
                 console.log('Error: ' + e);
             }
+        }).catch(error => {
+            viewModel.ava_rose_image_url = '';
         });
     });
 
