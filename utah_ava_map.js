@@ -281,7 +281,7 @@ var init_map = function() {
                 console.log('Error: ' + e);
             }
         }).catch(error => {
-            viewModel.ava_rose_image_url = '';
+            viewModel.ava_rose_image_url = 'images/question_mark.png';
         });
     });
 

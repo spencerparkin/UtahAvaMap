@@ -8,6 +8,7 @@ import sys
 import requests
 import io
 import math
+import json
 
 #sys.path.append(r'C:\dev\pyMath2D')
 
@@ -26,54 +27,39 @@ class WebServer(object):
     @cherrypy.tools.json_out()
     def ava_rose_data(self, **kwargs):
         try:
-            # TODO: Should make API request from utahavalanchecenter.org instead of reading html, then reading image pixel data.
-            from PIL import Image
             ava_region = kwargs['ava_region']
-            forecast_url, image_url = self._find_ava_rose_image_url(ava_region)
-            headers = self._make_request_headers()
+            ava_region = ava_region.lower()
+            if ava_region == 'saltlakecity':
+                ava_region = 'salt-lake'
+            forecast_url = 'https://utahavalanchecenter.org/forecast/' + ava_region + '/json/json.json'
+            headers = {
+                'User-Agent': 'Utah-Ava-Map',
+                'Accept': 'text/json',
+                'Cache-Control': 'max-age=0',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
+            }
+            response = requests.get(forecast_url, headers=headers)
+            json_text = response.text
+            json_data = json.loads(json_text)
+            if len(json_data.get('advisories', [])) == 0:
+                raise Exception('No advisories found!')
+            advisory = json_data['advisories'][0]['advisory']   # Is it always advisory zero?  We may want to search for the most applicable advisory.
+            image_url = 'https://utahavalanchecenter.org/' + advisory['overall_danger_rose_image']
             response = requests.get(image_url, headers=headers)
             image_data = io.BytesIO(response.content)
+            from PIL import Image
             image = Image.open(image_data)
             image = image.convert('RGB')
+            # The rose data is also encoded in the advisory dict, but by inspecting the image, we guarantee no ambiguity.
             ava_rose_data = self._construct_ava_rose_data_from_image(image)
             return {
                 'ava_rose_data': ava_rose_data,
                 'ava_rose_image_url': image_url,
-                'ava_rose_forecast_url': forecast_url
+                'ava_rose_forecast_url': 'https://utahavalanchecenter.org/forecast/' + ava_region
             }
         except Exception as ex:
             return {'error': str(ex)}
-
-    def _make_request_headers(self):
-        return {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Accept-Languages': 'en-US,en;q=0.9',
-            'Cache-Control': 'max-age=0',
-            'Connection': 'keep-alive',
-            'Cookie': 'has_js=1; _ga=GA1.2.1167023641.1543337228; _gid=GA1.2.1436974733.1543337228',
-            'Host': 'utahavalanchecenter.org',
-            'Upgrade-Insecure-Requests': '1'
-        }
-
-    def _find_ava_rose_image_url(self, ava_region):
-        ava_region = ava_region.lower()
-        if ava_region == 'saltlakecity':
-            ava_region = 'salt-lake'
-        forecast_url = 'https://utahavalanchecenter.org/forecast/' + ava_region
-        headers = self._make_request_headers()
-        response = requests.get(forecast_url, headers=headers)
-        html_text = response.text
-        line_list = html_text.split('\n')
-        regex = r'.*src="(.*forecast/.*\.png)".*'
-        for line in line_list:
-            match = re.match(regex, line)
-            if match is not None:
-                image_url = 'https://utahavalanchecenter.org/' + match.group(1)
-                return forecast_url, image_url
-        else:
-            raise Exception('Failed to find avalanche rose image URL in html.')
 
     def _construct_ava_rose_data_from_image(self, image):
         return {
