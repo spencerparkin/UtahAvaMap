@@ -623,3 +623,41 @@ function show_controls_button_clicked() {
         top: '0'
     }, 500);
 }
+
+function custom_ava_rose_image_select_changed() {
+    var upload_status = document.getElementById('custom_ava_rose_upload_status');
+    
+    var file_list = document.getElementById('custom_ava_rose_image_selector').files;
+    if(file_list.length != 1) {
+        upload_status.innerHTML = '';
+    } else {
+        upload_status.innerHTML = 'Uploading...';
+    
+        var file = file_list[0];
+    
+        var formData = new FormData();
+        formData.enctype = 'multipart/form-data';
+        formData.append('custom_ava_rose_image', file, file.name);
+        
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'custom_ava_rose');
+        
+        xhr.onload = function() {
+            if(xhr.status !== 200)
+                upload_status.innerHTML = 'Error!';
+            else {
+                upload_status.innerHTML = '';
+                
+                // TODO: Now promise the custom rose data.
+            }
+        }
+        
+        xhr.upload.onprogress = function(event) {
+            if(event.lengthComputable) {
+                upload_status.innerHTML = 'Uploading... ' + Math.round(event.loaded / event.total * 100.0) + '%';
+            }
+        }
+        
+        xhr.send(formData);
+    }
+}
