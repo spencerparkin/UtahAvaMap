@@ -168,6 +168,7 @@ var init_map = function() {
     
     viewer.scene.globe.enableLighting = true;
     
+    // TODO: There has to be a better way to get ambient/diffuse lighting on all surfaces of the map.
     viewer.clockViewModel.shouldAnimation = false;
     viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601('2017-09-22T16:00:00Z');
     
