@@ -21,6 +21,7 @@ var billboard_collection = null;
 var label_collection = null;
 var pow_proj_trail_cache = [];
 var pow_proj_trail_map = {};
+var pow_proj_key = '200163729-c0d0862c9606df39c65854f74b0af71f';    // Here it is for all to see.  Hmmm...
 var utahCenter = Cesium.Cartographic.fromDegrees(-111.673769, 39.308535);
 
 class PowProjTrailCacheEntry {
@@ -56,7 +57,7 @@ function promisePowProjTrailData(center) {
             url: 'https://www.powderproject.com/data/get-trails',
             dataType: 'json',
             data: {
-                'key': '200163729-c0d0862c9606df39c65854f74b0af71f',
+                'key': pow_proj_key,
                 'lat': Cesium.Math.toDegrees(cartographic.latitude),
                 'lon': Cesium.Math.toDegrees(cartographic.longitude),
                 'maxDistance': radius,
