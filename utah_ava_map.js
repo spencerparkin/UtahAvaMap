@@ -153,8 +153,8 @@ var init_map = function() {
         terrainProvider: Cesium.createWorldTerrain({
             requestVertexNormals: true
         }),
-        timeline: false,
-        animation: false,
+        timeline: true,
+        animation: true,
         scene3DOnly: true,
         selectionIndicator: false,
         sceneModePicker: false,
@@ -170,7 +170,7 @@ var init_map = function() {
     
     // TODO: There has to be a better way to get ambient/diffuse lighting on all surfaces of the map.
     viewer.clockViewModel.shouldAnimation = false;
-    viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601('2017-09-22T16:00:00Z');
+    viewer.clockViewModel.currentTime = Cesium.JulianDate.fromIso8601('2019-02-01T19:00:00Z');
     
     billboard_collection = viewer.scene.primitives.add(new Cesium.BillboardCollection({scene: viewer.scene}));
     label_collection = viewer.scene.primitives.add(new Cesium.LabelCollection({scene: viewer.scene}));
