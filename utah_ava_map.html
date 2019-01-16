@@ -25,7 +25,7 @@
                     <span class="second_column"><input id="show_pow_proj_trails_check" type="checkbox" data-bind="checked: show_pow_proj_trails"/></span>
                     
                     <span class="first_column"><label>Custom Ava-Rose:</label></span>
-                    <span class="second_column"><input id="custom_ava_rose_image_selector" type="file" change="custom_ava_rose_image_select_changed()" accept="image/png, image/jpeg"><span id="custom_ava_rose_upload_status"></span></span>
+                    <span class="second_column"><input id="custom_ava_rose_image_selector" type="file" onclick="custom_ava_rose_image_select_clicked()" onchange="custom_ava_rose_image_select_changed()" accept="image/png, image/jpeg"><span id="custom_ava_rose_upload_status"></span></span>
                     
                     <span class="first_column"><label for="slope_prime_radius_slider">Slope Radius:</label></span>
                     <span class="second_column"><input id="slope_prime_radius_slider" type="range" min="0.0" max="30.0" step="1.0" data-bind="value: slope_prime_radius"><span data-bind="text: slope_prime_radius"></span> degrees</span>

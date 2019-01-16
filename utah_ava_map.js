@@ -237,51 +237,7 @@ var init_map = function() {
     });
     Cesium.knockout.getObservable(viewModel, 'ava_region').subscribe(() => {
         viewModel.ava_rose_image_url = 'images/loading.gif';
-        promiseAvaRose(viewModel.ava_region).then(json_data => {
-            try {
-                let ava_rose_data = json_data.ava_rose_data;
-                viewModel.ava_rose_image_url = json_data.ava_rose_image_url;
-                viewModel.ava_rose_forecast_url = json_data.ava_rose_forecast_url;
-                ava_material.uniforms.rose00 = new Cesium.Color(
-                    getUniformDataFromRoseData(ava_rose_data, 'east', 7500),
-                    getUniformDataFromRoseData(ava_rose_data, 'north-east', 7500),
-                    getUniformDataFromRoseData(ava_rose_data, 'north', 7500),
-                    getUniformDataFromRoseData(ava_rose_data, 'north-west', 7500)
-                );
-                ava_material.uniforms.rose01 = new Cesium.Color(
-                    getUniformDataFromRoseData(ava_rose_data, 'west', 7500),
-                    getUniformDataFromRoseData(ava_rose_data, 'south-west', 7500),
-                    getUniformDataFromRoseData(ava_rose_data, 'south', 7500),
-                    getUniformDataFromRoseData(ava_rose_data, 'south-east', 7500)
-                );
-                ava_material.uniforms.rose10 = new Cesium.Color(
-                   getUniformDataFromRoseData(ava_rose_data, 'east', 9000),
-                   getUniformDataFromRoseData(ava_rose_data, 'north-east', 9000),
-                   getUniformDataFromRoseData(ava_rose_data, 'north', 9000),
-                   getUniformDataFromRoseData(ava_rose_data, 'north-west', 9000)
-                );
-                ava_material.uniforms.rose11 = new Cesium.Color(
-                    getUniformDataFromRoseData(ava_rose_data, 'west', 9000),
-                    getUniformDataFromRoseData(ava_rose_data, 'south-west', 9000),
-                    getUniformDataFromRoseData(ava_rose_data, 'south', 9000),
-                    getUniformDataFromRoseData(ava_rose_data, 'south-east', 9000)
-                );
-                ava_material.uniforms.rose20 = new Cesium.Color(
-                    getUniformDataFromRoseData(ava_rose_data, 'east', 11000),
-                    getUniformDataFromRoseData(ava_rose_data, 'north-east', 11000),
-                    getUniformDataFromRoseData(ava_rose_data, 'north', 11000),
-                    getUniformDataFromRoseData(ava_rose_data, 'north-west', 11000)
-                );
-                ava_material.uniforms.rose21 = new Cesium.Color(
-                    getUniformDataFromRoseData(ava_rose_data, 'west', 11000),
-                    getUniformDataFromRoseData(ava_rose_data, 'south-west', 11000),
-                    getUniformDataFromRoseData(ava_rose_data, 'south', 11000),
-                    getUniformDataFromRoseData(ava_rose_data, 'south-east', 11000)
-                );
-            } catch(e) {
-                console.log('Error: ' + e);
-            }
-        }).catch(error => {
+        promiseAvaRose(viewModel.ava_region).then(updateAvaRose).catch(error => {
             viewModel.ava_rose_image_url = 'images/question_mark.png';
         });
     });
@@ -531,28 +487,126 @@ function getUniformDataFromRoseData(rose_data, heading, altitude) {
     throw 'Failed to determine hazard level uniform value.';
 }
 
+function updateAvaRose(json_data) {
+    try {
+        let ava_rose_data = json_data.ava_rose_data;
+        viewModel.ava_rose_image_url = json_data.ava_rose_image_url;
+        viewModel.ava_rose_forecast_url = json_data.ava_rose_forecast_url;
+        ava_material.uniforms.rose00 = new Cesium.Color(
+            getUniformDataFromRoseData(ava_rose_data, 'east', 7500),
+            getUniformDataFromRoseData(ava_rose_data, 'north-east', 7500),
+            getUniformDataFromRoseData(ava_rose_data, 'north', 7500),
+            getUniformDataFromRoseData(ava_rose_data, 'north-west', 7500)
+        );
+        ava_material.uniforms.rose01 = new Cesium.Color(
+            getUniformDataFromRoseData(ava_rose_data, 'west', 7500),
+            getUniformDataFromRoseData(ava_rose_data, 'south-west', 7500),
+            getUniformDataFromRoseData(ava_rose_data, 'south', 7500),
+            getUniformDataFromRoseData(ava_rose_data, 'south-east', 7500)
+        );
+        ava_material.uniforms.rose10 = new Cesium.Color(
+           getUniformDataFromRoseData(ava_rose_data, 'east', 9000),
+           getUniformDataFromRoseData(ava_rose_data, 'north-east', 9000),
+           getUniformDataFromRoseData(ava_rose_data, 'north', 9000),
+           getUniformDataFromRoseData(ava_rose_data, 'north-west', 9000)
+        );
+        ava_material.uniforms.rose11 = new Cesium.Color(
+            getUniformDataFromRoseData(ava_rose_data, 'west', 9000),
+            getUniformDataFromRoseData(ava_rose_data, 'south-west', 9000),
+            getUniformDataFromRoseData(ava_rose_data, 'south', 9000),
+            getUniformDataFromRoseData(ava_rose_data, 'south-east', 9000)
+        );
+        ava_material.uniforms.rose20 = new Cesium.Color(
+            getUniformDataFromRoseData(ava_rose_data, 'east', 11000),
+            getUniformDataFromRoseData(ava_rose_data, 'north-east', 11000),
+            getUniformDataFromRoseData(ava_rose_data, 'north', 11000),
+            getUniformDataFromRoseData(ava_rose_data, 'north-west', 11000)
+        );
+        ava_material.uniforms.rose21 = new Cesium.Color(
+            getUniformDataFromRoseData(ava_rose_data, 'west', 11000),
+            getUniformDataFromRoseData(ava_rose_data, 'south-west', 11000),
+            getUniformDataFromRoseData(ava_rose_data, 'south', 11000),
+            getUniformDataFromRoseData(ava_rose_data, 'south-east', 11000)
+        );
+    } catch(e) {
+        console.log('Error: ' + e);
+    }
+}
+
 function promiseAvaRose(ava_region) {
-    return new Promise((resolve, reject) => {
-        $.ajax({
-            url: 'ava_rose_data',
-            dataType: 'json',
-            data: {
-                'ava_region': ava_region
-            },
-            success: json_data => {
-                if('error' in json_data) {
-                    console.log('Error: ' + json_data['error']);
-                    reject();
-                } else {
-                    resolve(json_data);
-                }
-            },
-            failure: error => {
-                console.log('Error: ' + error);
+    if(ava_region === 'Custom') {
+        return new Promise((resolve, reject) => {
+            var upload_status = document.getElementById('custom_ava_rose_upload_status');
+            
+            var file_list = document.getElementById('custom_ava_rose_image_selector').files;
+            if(file_list.length != 1) {
+                upload_status.innerHTML = '';
                 reject();
+            } else {
+                upload_status.innerHTML = 'Uploading...';
+            
+                var file = file_list[0];
+            
+                var formData = new FormData();
+                formData.enctype = 'multipart/form-data';
+                formData.append('image_file', file, file.name);
+                
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'custom_ava_rose_data');
+                
+                xhr.onerror = function(error) {
+                    reject({'error': error});
+                }
+                
+                xhr.onload = function() {
+                    if(xhr.status !== 200) {
+                        upload_status.innerHTML = 'Error!';
+                        reject();
+                    } else {
+                        upload_status.innerHTML = '';
+                        
+                        let json_data = JSON.parse(xhr.responseText);
+                        if('error' in json_data) {
+                            console.log('Error: ' + json_data.error);
+                            reject();
+                        } else {
+                            resolve(json_data);
+                        }
+                    }
+                }
+                
+                xhr.upload.onprogress = function(event) {
+                    if(event.lengthComputable) {
+                        upload_status.innerHTML = 'Uploading... ' + Math.round(event.loaded / event.total * 100.0) + '%';
+                    }
+                }
+                
+                xhr.send(formData);
             }
         });
-    });
+    } else {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: 'ava_rose_data',
+                dataType: 'json',
+                data: {
+                    'ava_region': ava_region
+                },
+                success: json_data => {
+                    if('error' in json_data) {
+                        alert('Error: ' + json_data['error']);
+                        reject();
+                    } else {
+                        resolve(json_data);
+                    }
+                },
+                failure: error => {
+                    console.log('Error: ' + error);
+                    reject();
+                }
+            });
+        });
+    }
 }
 
 function promiseAvaRegions() {
@@ -625,39 +679,9 @@ function show_controls_button_clicked() {
 }
 
 function custom_ava_rose_image_select_changed() {
-    var upload_status = document.getElementById('custom_ava_rose_upload_status');
-    
-    var file_list = document.getElementById('custom_ava_rose_image_selector').files;
-    if(file_list.length != 1) {
-        upload_status.innerHTML = '';
-    } else {
-        upload_status.innerHTML = 'Uploading...';
-    
-        var file = file_list[0];
-    
-        var formData = new FormData();
-        formData.enctype = 'multipart/form-data';
-        formData.append('custom_ava_rose_image', file, file.name);
-        
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', 'custom_ava_rose');
-        
-        xhr.onload = function() {
-            if(xhr.status !== 200)
-                upload_status.innerHTML = 'Error!';
-            else {
-                upload_status.innerHTML = '';
-                
-                // TODO: Now promise the custom rose data.
-            }
-        }
-        
-        xhr.upload.onprogress = function(event) {
-            if(event.lengthComputable) {
-                upload_status.innerHTML = 'Uploading... ' + Math.round(event.loaded / event.total * 100.0) + '%';
-            }
-        }
-        
-        xhr.send(formData);
-    }
+    viewModel.ava_region = 'Custom';
+}
+
+function custom_ava_rose_image_select_clicked() {
+    this.value = null;
 }
