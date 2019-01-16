@@ -43,7 +43,8 @@ function promisePowProjTrailData(center) {
         let cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(center);
         let distance = cartographicDistance(cartographic, utahCenter) / 1609.344;
         if(distance > 350.0)
-            reject('out_of_utah');
+            resolve({trails: []});
+            
         for(let i = 0; i < pow_proj_trail_cache.length; i++) {
             let cache_entry = pow_proj_trail_cache[i];
             if(cache_entry.contains_point(center)) {
@@ -126,10 +127,8 @@ function updatePowProjTrailMapForCameraChange(cartographic) {
     promisePowProjTrailData(center).then(json_data => {
         updatePowProjTrailMap(json_data.trails);
     }).catch(error => {
-        if(error !== 'out_of_utah') {
-            viewModel.show_pow_proj_trails = false;
-            console.log('Pow-proj trail data promise failed: ' + error);
-        }
+        viewModel.show_pow_proj_trails = false;
+        console.log('Pow-proj trail data promise failed: ' + error);
     });
 }
 
