@@ -530,10 +530,10 @@ function getUniformDataFromRoseData(rose_data, heading, altitude) {
     throw 'Failed to determine hazard level uniform value.';
 }
 
-function promiseAvaRose(ava_region, image_only=false) {
+function promiseAvaRose(ava_region) {
     return new Promise((resolve, reject) => {
         $.ajax({
-            url: image_only ? 'ava_rose_image' : 'ava_rose_data',
+            url: 'ava_rose_data',
             dataType: 'json',
             data: {
                 'ava_region': ava_region
