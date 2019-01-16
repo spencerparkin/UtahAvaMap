@@ -683,5 +683,5 @@ function custom_ava_rose_image_select_changed() {
 }
 
 function custom_ava_rose_image_select_clicked() {
-    this.value = null;
+    this.value = undefined;
 }
