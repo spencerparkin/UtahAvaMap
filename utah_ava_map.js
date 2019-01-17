@@ -153,8 +153,8 @@ var init_map = function() {
         terrainProvider: Cesium.createWorldTerrain({
             requestVertexNormals: true
         }),
-        timeline: true,
-        animation: true,
+        timeline: false,
+        animation: false,
         scene3DOnly: true,
         selectionIndicator: false,
         sceneModePicker: false,
