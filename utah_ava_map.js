@@ -277,6 +277,12 @@ var init_map = function() {
                 window.open(pickedFeature.primitive.linkForPick, '_blank');
         }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    
+    viewer.dataSources.add(Cesium.KmlDataSource.load('KML/Bountiful Ridge.kml', {
+        camera: viewer.scene.camera,
+        canvas: viewer.scene.canvas,
+        clampToGround: true
+    }));
 }
 
 var formatCartographicAngleString = function(radians) {

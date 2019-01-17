@@ -235,7 +235,7 @@ class WebServer(object):
             ava_regions_map = {}
             namespaces = {'kml': 'http://www.opengis.net/kml/2.2'}
             import xml.etree.ElementTree as ET
-            tree = ET.parse('AvalancheRegions.kml')
+            tree = ET.parse('KML/AvalancheRegions.kml')
             root = tree.getroot()
             doc = root.find('kml:Document', namespaces)
             for folder in doc.findall('kml:Folder', namespaces):
