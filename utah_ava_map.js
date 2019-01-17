@@ -236,19 +236,15 @@ var init_map = function() {
         ava_material.uniforms.slope_prime_alpha = parseFloat(viewModel.slope_prime_alpha);
     });
     Cesium.knockout.getObservable(viewModel, 'ava_region').subscribe(() => {
-        viewModel.ava_rose_image_url = 'images/loading.gif';
-        promiseAvaRose(viewModel.ava_region).then(updateAvaRose).catch(error => {
-            viewModel.ava_rose_image_url = 'images/question_mark.png';
-        });
-    });
-
-    viewer.camera.changed.addEventListener(event => {
-        let cartographic = calcScreenCenterCartographic();
-        updateNearestAvaRegion(cartographic);
-        if(viewModel.show_pow_proj_trails) {
-            updatePowProjTrailMapForCameraChange(cartographic);
+        if(Cesium.defined(viewModel.ava_region)) {
+            viewModel.ava_rose_image_url = 'images/loading.gif';
+            promiseAvaRose(viewModel.ava_region).then(updateAvaRose).catch(error => {
+                viewModel.ava_rose_image_url = 'images/question_mark.png';
+            });
         }
     });
+
+    viewer.camera.changed.addEventListener(cameraChangedEventHandler);
 
     promiseAvaRegions().then(json_data => {
         ava_regions_map = json_data;
@@ -301,6 +297,14 @@ var formatCartographicString = function(cartographic) {
         longitudeSuffix = ' W';
     let formatted = formatCartographicAngleString(Math.abs(cartographic.latitude)) + latitudeSuffix + ' ' + formatCartographicAngleString(Math.abs(cartographic.longitude)) + longitudeSuffix;
     return formatted;
+}
+
+var cameraChangedEventHandler = function(event) {
+    let cartographic = calcScreenCenterCartographic();
+    updateNearestAvaRegion(cartographic);
+    if(viewModel.show_pow_proj_trails) {
+        updatePowProjTrailMapForCameraChange(cartographic);
+    }
 }
 
 window.onload = function() {
@@ -567,10 +571,11 @@ function promiseAvaRose(ava_region) {
                         
                         let json_data = JSON.parse(xhr.responseText);
                         if('error' in json_data) {
-                            console.log('Error: ' + json_data.error);
+                            alert('Error: ' + json_data.error);
                             reject();
                         } else {
                             resolve(json_data);
+                            viewer.camera.changed.removeEventListener(cameraChangedEventHandler);
                         }
                     }
                 }
@@ -679,9 +684,11 @@ function show_controls_button_clicked() {
 }
 
 function custom_ava_rose_image_select_changed() {
+    viewModel.ava_region = undefined;
     viewModel.ava_region = 'Custom';
 }
 
 function custom_ava_rose_image_select_clicked() {
-    this.value = undefined;
+    let custom_ava_rose_image_selector = document.getElementById('custom_ava_rose_image_selector');
+    custom_ava_rose_image_selector.value = '';
 }

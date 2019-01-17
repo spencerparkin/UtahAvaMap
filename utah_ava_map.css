@@ -16,7 +16,7 @@
     height: 50%;
     z-index: 2;
     overflow-y: scroll;
-    background-color: black;
+    background-color: grey;
     color: white;
     font-family: arial;
 }

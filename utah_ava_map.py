@@ -217,12 +217,15 @@ class WebServer(object):
             'high': (237.0, 28.0, 36.0),
             'extreme': (0.0, 0.0, 0.0)
         }
-        epsilon = 1e-2
+        closest_hazard_level = None
+        smallest_distance = 9999.0
         for hazard_level in hazard_level_map:
             color = hazard_level_map[hazard_level]
-            if math.sqrt(sum([(color[i] - pixel[i]) ** 2 for i in range(0, 3)])) < epsilon:
-                return hazard_level
-        raise Exception('Failed to identify hazard level in ava rose image.')
+            distance = math.sqrt(sum([(color[i] - pixel[i]) ** 2 for i in range(0, 3)]))
+            if distance < smallest_distance:
+                smallest_distance = distance
+                closest_hazard_level = hazard_level
+        return closest_hazard_level
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
