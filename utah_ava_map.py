@@ -18,6 +18,7 @@ from PIL import Image
 class WebServer(object):
     def __init__(self, root_dir):
         self.root_dir = root_dir
+        self.cache_fool = 0
 
     @cherrypy.expose
     def default(self, **kwargs):
@@ -63,7 +64,10 @@ class WebServer(object):
             if kwargs.get('use_local_image_url', False):
                 name, ext = os.path.splitext(image_url)
                 suffix = self._make_unique_file_suffix()
-                image_url = 'images/local_ava_rose_%s%s' % (suffix, ext)
+                image_url = 'images/local_ava_rose_%s_%d%s' % (suffix, self.cache_fool, ext)
+                self.cache_fool = (self.cache_fool + 1) % 10    # Maybe by the time we wrap around, the cache will expire?
+                if os.path.exists(image_url):
+                    os.remove(image_url)
                 image.save(image_url, transparency=(0, 0, 0))
             return {
                 'ava_rose_data': ava_rose_data,
