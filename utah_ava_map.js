@@ -318,6 +318,8 @@ window.onload = function() {
     
     if(localStorage.getItem('mapExplanationAcknowledged')) {
         document.getElementById('mapUsageBox').style.display = "none";
+    } else {
+        document.getElementById('mapUsageBox').style.display = "block";
     }
 }
 
