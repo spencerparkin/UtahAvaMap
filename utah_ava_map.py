@@ -64,7 +64,7 @@ class WebServer(object):
                 name, ext = os.path.splitext(image_url)
                 suffix = self._make_unique_file_suffix()
                 image_url = 'images/local_ava_rose_%s%s' % (suffix, ext)
-                image.save(image_url)
+                image.save(image_url, transparency=(0, 0, 0))
             return {
                 'ava_rose_data': ava_rose_data,
                 'ava_rose_image_url': image_url,
