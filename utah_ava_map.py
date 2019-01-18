@@ -89,7 +89,7 @@ class WebServer(object):
                         break
                     handle.write(image_data)
             image = Image.open(image_file_path)
-            image = image.convert('RGB')
+            image = image.convert('RGBA')
             ava_rose_data = self._construct_ava_rose_data_from_image(image)
             return {
                 'ava_rose_data': ava_rose_data,
