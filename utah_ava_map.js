@@ -503,8 +503,12 @@ function getUniformDataFromRoseData(rose_data, heading, altitude) {
 function updateAvaRose(json_data) {
     try {
         let ava_rose_data = json_data.ava_rose_data;
-        viewModel.ava_rose_image_url = json_data.ava_rose_image_url;
+        
+        var random_number = Math.floor(Math.random() * 1000.0);
+        viewModel.ava_rose_image_url = json_data.ava_rose_image_url + '?cache_invalidate=' + random_number.toString();
+        
         viewModel.ava_rose_forecast_url = json_data.ava_rose_forecast_url;
+        
         ava_material.uniforms.rose00 = new Cesium.Color(
             getUniformDataFromRoseData(ava_rose_data, 'east', 7500),
             getUniformDataFromRoseData(ava_rose_data, 'north-east', 7500),
