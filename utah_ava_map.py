@@ -56,7 +56,7 @@ class WebServer(object):
             image_url = 'https://utahavalanchecenter.org/' + advisory['overall_danger_rose_image']
             response = requests.get(image_url, headers=headers)
             image_data = io.BytesIO(response.content)
-            image = Image.open(image_data, transparency=(64, 128, 64))
+            image = Image.open(image_data)
             image = image.convert('RGB')
             # The rose data is also encoded in the advisory dict, but by inspecting the image, we guarantee no ambiguity.
             ava_rose_data = self._construct_ava_rose_data_from_image(image)
@@ -64,7 +64,7 @@ class WebServer(object):
                 name, ext = os.path.splitext(image_url)
                 suffix = self._make_unique_file_suffix()
                 image_url = 'images/local_ava_rose_%s%s' % (suffix, ext)
-                image.save(image_url, transparency=(64, 128, 64))
+                image.save(image_url, transparency=(0, 0, 0))
             return {
                 'ava_rose_data': ava_rose_data,
                 'ava_rose_image_url': image_url,
