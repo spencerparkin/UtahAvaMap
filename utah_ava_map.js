@@ -175,6 +175,7 @@ var init_map = function() {
     billboard_collection = viewer.scene.primitives.add(new Cesium.BillboardCollection({scene: viewer.scene}));
     label_collection = viewer.scene.primitives.add(new Cesium.LabelCollection({scene: viewer.scene}));
     
+    // TODO: It may be more helpful to remember the user's last viewed location.
     let west = -111.7287239132627;
     let east = -111.6729336993894;
     let north = 40.66047397914876;
