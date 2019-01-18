@@ -68,7 +68,13 @@ class WebServer(object):
             return {
                 'ava_rose_data': ava_rose_data,
                 'ava_rose_image_url': image_url,
-                'ava_rose_forecast_url': 'https://utahavalanchecenter.org/forecast/' + ava_region
+                'ava_rose_forecast_url': 'https://utahavalanchecenter.org/forecast/' + ava_region,
+                'bottom_line': advisory.get('bottom_line'),
+                # I wasn't planning to gether this information, but only my server can access the UAC website.  I can't do it directly.
+                'current_conditions': advisory.get('current_conditions'),
+                'mountain_weather': advisory.get('mountain_weather'),
+                'recent_activity': advisory.get('recent_activity'),
+                'overall_danger_rating': advisory.get('overall_danger_rating')
             }
         except Exception as ex:
             return {'error': str(ex)}
