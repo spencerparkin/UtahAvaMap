@@ -604,7 +604,8 @@ function promiseAvaRose(ava_region) {
                 url: 'ava_rose_data',
                 dataType: 'json',
                 data: {
-                    'ava_region': ava_region
+                    'ava_region': ava_region,
+                    'use_local_image_url': true     // Our server can access the UAC website, but sadly, I can't.
                 },
                 success: json_data => {
                     if('error' in json_data) {

@@ -23,6 +23,14 @@ class WebServer(object):
     def default(self, **kwargs):
         return cherrypy.lib.static.serve_file(self.root_dir + '/utah_ava_map.html', content_type='text/html')
     
+    def _make_unique_file_suffix(self):
+        ip_addr = cherrypy.request.remote.ip
+        headers = cherrypy.request.headers
+        if 'X-Forwarded-For' in headers:
+            ip_addr = headers['X-Forwarded-For']
+        ip_addr = ip_addr.replace('.', '_')
+        return ip_addr
+    
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def ava_rose_data(self, **kwargs):
@@ -52,6 +60,11 @@ class WebServer(object):
             image = image.convert('RGB')
             # The rose data is also encoded in the advisory dict, but by inspecting the image, we guarantee no ambiguity.
             ava_rose_data = self._construct_ava_rose_data_from_image(image)
+            if kwargs.get('use_local_image_url', False):
+                name, ext = os.path.splitext(image_url)
+                suffix = self._make_unique_file_suffix()
+                image_url = 'images/local_ava_rose_%s%s' % (suffix, ext)
+                image.save(image_url)
             return {
                 'ava_rose_data': ava_rose_data,
                 'ava_rose_image_url': image_url,
@@ -64,14 +77,10 @@ class WebServer(object):
     @cherrypy.tools.json_out()
     def custom_ava_rose_data(self, **kwargs):
         try:
-            ip_addr = cherrypy.request.remote.ip
-            headers = cherrypy.request.headers
-            if 'X-Forwarded-For' in headers:
-                ip_addr = headers['X-Forwarded-For']
-            ip_addr = ip_addr.replace('.', '_')
             image_file = kwargs['image_file']
             name, ext = os.path.splitext(image_file.filename)
-            image_url = 'images/custom_%s_for_%s%s' % (name, ip_addr, ext)
+            suffix = self._make_unique_file_suffix()
+            image_url = 'images/custom_%s_%s%s' % (name, suffix, ext)
             image_file_path = self.root_dir + '/' + image_url
             with open(image_file_path, 'wb') as handle:
                 while True:
