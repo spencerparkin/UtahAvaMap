@@ -550,7 +550,9 @@ function updateAvaRose(json_data) {
         forecast_info_div.innerHTML = '';
         
         if('region' in json_data) {
-            add_help_section('Forecast Summary', 'Following is forecast info gathered from the UAC website for the ' + json_data.region + ' region, and is provided here only because the UAC website is sometimes not reachable.');
+            add_help_section('Forecast Summary', 'Following is forecast info gathered from the UAC website for the <b><i style="color:darkred;">' +
+                        json_data.region + '</i></b> region, and is provided here only because the UAC website is sometimes not reachable.  ' +
+                        'The overall danger rating is <b><i style="color:darkred;">' + json_data.overall_danger_rating + '</b></i>.');
             add_help_section('Bottom Line', json_data.bottom_line);
             add_help_section('Current Conditions', json_data.current_conditions);
             add_help_section('Recent Activity', json_data.recent_activity);
