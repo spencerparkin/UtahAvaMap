@@ -549,11 +549,13 @@ function updateAvaRose(json_data) {
         let forecast_info_div = document.getElementById('forecast_info');
         forecast_info_div.innerHTML = '';
         
-        add_help_section('Forecast Summary', 'Following is forecast info gathered from the UAC website, and is provided here only because the UAC website is sometimes not reachable.');
-        add_help_section('Bottom Line', json_data.bottom_line);
-        add_help_section('Current Conditions', json_data.current_conditions);
-        add_help_section('Recent Activity', json_data.recent_activity);
-        add_help_section('Mountain Weather', json_data.mountain_weather);
+        if('region' in json_data) {
+            add_help_section('Forecast Summary', 'Following is forecast info gathered from the UAC website for the ' + json_data.region + ' region, and is provided here only because the UAC website is sometimes not reachable.');
+            add_help_section('Bottom Line', json_data.bottom_line);
+            add_help_section('Current Conditions', json_data.current_conditions);
+            add_help_section('Recent Activity', json_data.recent_activity);
+            add_help_section('Mountain Weather', json_data.mountain_weather);
+        }
         
     } catch(e) {
         console.log('Error: ' + e);

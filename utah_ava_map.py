@@ -74,7 +74,8 @@ class WebServer(object):
                 'current_conditions': advisory.get('current_conditions'),
                 'mountain_weather': advisory.get('mountain_weather'),
                 'recent_activity': advisory.get('recent_activity'),
-                'overall_danger_rating': advisory.get('overall_danger_rating')
+                'overall_danger_rating': advisory.get('overall_danger_rating'),
+                'region': advisory.get('Region')
             }
         except Exception as ex:
             return {'error': str(ex)}
