@@ -545,8 +545,33 @@ function updateAvaRose(json_data) {
             getUniformDataFromRoseData(ava_rose_data, 'south', 11000),
             getUniformDataFromRoseData(ava_rose_data, 'south-east', 11000)
         );
+        
+        let forecast_info_div = document.getElementById('forecast_info');
+        forecast_info_div.innerHTML = '';
+        
+        add_help_section('Forecast Summary', 'Following is forecast info gathered from the UAC website, and is provided here only because the UAC website is sometimes not reachable.');
+        add_help_section('Bottom Line', json_data.bottom_line);
+        add_help_section('Current Conditions', json_data.current_conditions);
+        add_help_section('Recent Activity', json_data.recent_activity);
+        add_help_section('mountain_weather', json_data.mountain_weather);
+        
     } catch(e) {
         console.log('Error: ' + e);
+    }
+}
+
+function add_help_section(section_title, section_contents) {
+    if(section_contents) {
+        let forecast_info_div = document.getElementById('forecast_info');
+        
+        let headerElement = document.createElement('h3');
+        headerElement.style.color = 'lightblue';
+        headerElement.innerHTML = section_title;
+        forecast_info_div.appendChild(headerElement);
+        
+        let paragraphElement = document.createElement('p');
+        paragraphElement.innerHTML = section_contents;
+        forecast_info_div.appendChild(paragraphElement);
     }
 }
 
