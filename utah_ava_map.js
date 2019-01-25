@@ -553,7 +553,7 @@ function updateAvaRose(json_data) {
         add_help_section('Bottom Line', json_data.bottom_line);
         add_help_section('Current Conditions', json_data.current_conditions);
         add_help_section('Recent Activity', json_data.recent_activity);
-        add_help_section('mountain_weather', json_data.mountain_weather);
+        add_help_section('Mountain Weather', json_data.mountain_weather);
         
     } catch(e) {
         console.log('Error: ' + e);
