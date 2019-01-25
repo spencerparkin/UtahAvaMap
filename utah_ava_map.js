@@ -562,16 +562,19 @@ function updateAvaRose(json_data) {
 
 function add_help_section(section_title, section_contents) {
     if(section_contents) {
-        let forecast_info_div = document.getElementById('forecast_info');
-        
-        let headerElement = document.createElement('h3');
-        headerElement.style.color = 'lightblue';
-        headerElement.innerHTML = section_title;
-        forecast_info_div.appendChild(headerElement);
-        
-        let paragraphElement = document.createElement('p');
-        paragraphElement.innerHTML = section_contents;
-        forecast_info_div.appendChild(paragraphElement);
+        section_contents = section_contents.trim();
+        if(section_contents.length > 0) {
+            let forecast_info_div = document.getElementById('forecast_info');
+            
+            let headerElement = document.createElement('h3');
+            headerElement.style.color = 'lightblue';
+            headerElement.innerHTML = section_title;
+            forecast_info_div.appendChild(headerElement);
+            
+            let paragraphElement = document.createElement('p');
+            paragraphElement.innerHTML = section_contents;
+            forecast_info_div.appendChild(paragraphElement);
+        }
     }
 }
 
