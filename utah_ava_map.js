@@ -1,5 +1,8 @@
 // utah_ava_map.js
 
+// Didn't know about this until now...  Would have been useful...
+// https://utahavalanchecenter.org/docs/api/forecast
+
 var viewer = null;
 var viewModel = {
     slope_prime_radius: 15.0,
