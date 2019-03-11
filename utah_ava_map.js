@@ -178,13 +178,19 @@ var init_map = function() {
     billboard_collection = viewer.scene.primitives.add(new Cesium.BillboardCollection({scene: viewer.scene}));
     label_collection = viewer.scene.primitives.add(new Cesium.LabelCollection({scene: viewer.scene}));
     
-    // TODO: It may be more helpful to remember the user's last viewed location.
-    let west = -111.7287239132627;
-    let east = -111.6729336993894;
-    let north = 40.66047397914876;
-    let south = 40.64897595231015;
-    let rect = Cesium.Rectangle.fromDegrees(west, south, east, north);
-    viewer.camera.setView({destination: rect});
+    try {
+        let camera_matrix_array_str = window.localStorage['camera_matrix_array_str'];
+        let camera_matrix_array = JSON.parse(camera_matrix_array_str);
+        let camera_matrix = Cesium.Matrix4.fromArray(camera_matrix_array);
+        viewer.camera.setView({endTransform: camera_matrix});
+    } catch(error) {
+        let west = -111.7287239132627;
+        let east = -111.6729336993894;
+        let north = 40.66047397914876;
+        let south = 40.64897595231015;
+        let rect = Cesium.Rectangle.fromDegrees(west, south, east, north);
+        viewer.camera.setView({destination: rect});
+    }
     
     promiseAvaMapShader().then(glsl_code => {
         ava_material = new Cesium.Material({
@@ -306,9 +312,15 @@ var formatCartographicString = function(cartographic) {
 var cameraChangedEventHandler = function(event) {
     let cartographic = calcScreenCenterCartographic();
     updateNearestAvaRegion(cartographic);
+    
     if(viewModel.show_pow_proj_trails) {
         updatePowProjTrailMapForCameraChange(cartographic);
     }
+    
+    let camera_matrix = Cesium.Matrix4.fromCamera(viewer.camera);
+    let camera_matrix_array = Cesium.Matrix4.toArray(camera_matrix);
+    let camera_matrix_array_str = JSON.stringify(camera_matrix_array);
+    window.localStorage['camera_matrix_array_str'] = camera_matrix_array_str;
 }
 
 window.onload = function() {
