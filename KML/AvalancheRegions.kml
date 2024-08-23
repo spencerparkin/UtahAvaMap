@@ -68,7 +68,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>Uintas</name>
+	        <name>Uintas</name>
 			<LookAt>
 				<longitude>-110.3663418268298</longitude>
 				<latitude>40.76833939201603</latitude>
