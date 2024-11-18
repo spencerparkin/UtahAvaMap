@@ -25,7 +25,6 @@ var label_collection = null;
 var pow_proj_trail_cache = [];
 var pow_proj_trail_map = {};
 var pow_proj_key = '200163729-c0d0862c9606df39c65854f74b0af71f';    // Here it is for all to see.  Hmmm...
-var utahCenter = Cesium.Cartographic.fromDegrees(-111.673769, 39.308535);
 
 class PowProjTrailCacheEntry {
     constructor(center, radius, json_data) {
@@ -43,6 +42,7 @@ class PowProjTrailCacheEntry {
 
 function promisePowProjTrailData(center) {
     return new Promise((resolve, reject) => {
+        let utahCenter = Cesium.Cartographic.fromDegrees(-111.673769, 39.308535);
         let cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(center);
         let distance = cartographicDistance(cartographic, utahCenter) / 1609.344;
         if(distance > 350.0)
@@ -144,11 +144,12 @@ function setLabelAndBillboardVisibility(visible) {
 }
 
 var init_map = function() {
-    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIyZjBmNGUxMi1mNjYyLTQ4NTMtYjdkZC03ZGJkMzZlMzYyZWQiLCJpZCI6NTA2Miwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MjMwODg2MH0.MJB-IG9INCNEA0ydUvprHcUTLdKDbnPpkWG6DCqXKQc';
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2ZTdiYmFkMi04ZWM3LTRlZDgtOTBiYy03YTdjNmMyZTMxNjEiLCJpZCI6MjU2MjAwLCJpYXQiOjE3MzE5NDcyODB9.zmSgbc3zU1PffYWTm3h4sPlEK4nLsHeWBrE0M6qHOZk';
     viewer = new Cesium.Viewer('cesiumContainer', {
-        terrainProvider: Cesium.createWorldTerrain({
+        // TODO: I have no idea how to use the async/await keywords.  Figure it out.
+        /*terrainProvider: await Cesium.CesiumTerrainProvider.fromIonAssetId(3956, {
             requestVertexNormals: true
-        }),
+        }),*/
         timeline: false,
         animation: false,
         scene3DOnly: true,
@@ -158,8 +159,7 @@ var init_map = function() {
         homeButton: false,
         geocoder: false,
         vrButton: false,
-        baseLayerPicker: false,
-        imageryProvider: Cesium.createWorldImagery()
+        baseLayerPicker: false
     });
     
     viewer.scene.globe.enableLighting = true;
