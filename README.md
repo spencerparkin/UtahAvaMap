@@ -2,9 +2,9 @@
 
 Overlay current avalanche hazard conditions on a map as a function of the avalanche rose.
 
-The current snap-shot is as follows, which isn't very helpful, because (1) the project is broken
-until I can learn how to use the async/await keywords (wasn't originally required to use the
-Cesium API) and (2) there is a valid UAC forecast to use.
+Following is a screen-shot of the web-app.  I'll post a better one once the UAC forecasts start.
+For now, the rose is grey, because there is no forecast.  The green shading indicates a lower danger
+rating for those areas of the map.  This, of course, must be taken with a very large grain of salt.
 
 ![snapshot](https://github.com/spencerparkin/UtahAvaMap/blob/master/screen_shot.png?raw=true)
 

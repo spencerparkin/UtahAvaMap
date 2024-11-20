@@ -143,13 +143,11 @@ function setLabelAndBillboardVisibility(visible) {
     }
 }
 
-var init_map = function() {
-    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2ZTdiYmFkMi04ZWM3LTRlZDgtOTBiYy03YTdjNmMyZTMxNjEiLCJpZCI6MjU2MjAwLCJpYXQiOjE3MzE5NDcyODB9.zmSgbc3zU1PffYWTm3h4sPlEK4nLsHeWBrE0M6qHOZk';
-    viewer = new Cesium.Viewer('cesiumContainer', {
-        // TODO: I have no idea how to use the async/await keywords.  Figure it out.
-        /*terrainProvider: await Cesium.CesiumTerrainProvider.fromIonAssetId(3956, {
+var create_viewer = async function() {
+	let result = new Cesium.Viewer('cesiumContainer', {
+        terrainProvider: await Cesium.CesiumTerrainProvider.fromIonAssetId(1, {
             requestVertexNormals: true
-        }),*/
+        }),
         timeline: false,
         animation: false,
         scene3DOnly: true,
@@ -161,7 +159,22 @@ var init_map = function() {
         vrButton: false,
         baseLayerPicker: false
     });
-    
+	return result;
+}
+
+var init_map = function() {
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2ZTdiYmFkMi04ZWM3LTRlZDgtOTBiYy03YTdjNmMyZTMxNjEiLCJpZCI6MjU2MjAwLCJpYXQiOjE3MzE5NDcyODB9.zmSgbc3zU1PffYWTm3h4sPlEK4nLsHeWBrE0M6qHOZk';
+    create_viewer().then(result => {
+		viewer = result;
+		setup_viewer();
+	});
+}
+
+var setup_viewer = function() {
+    if(viewer == null) {
+        alert("Viewer is null!");
+    }
+
     viewer.scene.globe.enableLighting = true;
     
     // TODO: There has to be a better way to get ambient/diffuse lighting on all surfaces of the map.
