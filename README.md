@@ -8,6 +8,9 @@ rating for those areas of the map.  This, of course, must be taken with a very l
 
 ![snapshot](https://github.com/spencerparkin/UtahAvaMap/blob/master/screen_shot.png?raw=true)
 
-The following link is broken.  I stopped using Heroku, because it stopped being free for hobbyists.
+You can try the app at the following link, but know that the server response time is going to
+be quite slow, because I'm not paying Render any money.  Also, I won't be able to test that the
+app is fully functional again until the UAC starts forecasting again.  It's been years since I
+developed the app, and just recently got it out of moth balls.
 
-[https://utah-ava-map.herokuapp.com](https://utah-ava-map.herokuapp.com)
+[https://utahavamap.onrender.com/](https://utahavamap.onrender.com/)
