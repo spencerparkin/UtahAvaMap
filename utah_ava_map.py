@@ -1,5 +1,11 @@
 # utah_ava_map.py
 
+import inspect
+
+# Possible workaround for bug in Python stuff...
+if not hasattr(inspect, 'getargspec'):
+    inspect.getargspec = inspect.getfullargspec
+
 import os
 import cherrypy
 import datetime
